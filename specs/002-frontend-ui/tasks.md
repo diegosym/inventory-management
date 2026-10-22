@@ -71,7 +71,7 @@ Rules:
     the validator spec and `docker compose exec frontend npm run build` is
     green — as one task-specific commit.
 
-- [ ] **T3. Listing: hooks, states, and meta-driven controls.**
+- [x] **T3. Listing: hooks, states, and meta-driven controls.**
   `src/hooks/useDebouncedValue.ts` (~300 ms, timer cleanup),
   `src/hooks/useProducts.ts` (one fetch per param change, debounce, page-1
   reset on `q`/`active`, page clamp to the last valid page),
