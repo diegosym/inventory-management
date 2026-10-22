@@ -1,0 +1,24 @@
+# PostgreSQL via environment variables (NFR-2, C16):
+#   POSTGRES_HOST / POSTGRES_USER / POSTGRES_PASSWORD / POSTGRES_DB
+# The test database is separate from development (NFR-2); production reads
+# DATABASE_URL. The compose backend service sets the POSTGRES_* variables.
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  max_connections: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  host: <%= ENV.fetch("POSTGRES_HOST", "localhost") %>
+  username: <%= ENV.fetch("POSTGRES_USER", "inventory") %>
+  password: <%= ENV.fetch("POSTGRES_PASSWORD", "") %>
+
+development:
+  <<: *default
+  database: <%= ENV.fetch("POSTGRES_DB", "inventory_development") %>
+
+test:
+  <<: *default
+  database: <%= ENV.fetch("POSTGRES_TEST_DB", "inventory_test") %>
+
+production:
+  <<: *default
+  database: inventory_production
+  url: <%= ENV["DATABASE_URL"] %>

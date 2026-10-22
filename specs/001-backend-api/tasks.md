@@ -19,7 +19,7 @@ Rules:
 
 ## Tasks
 
-- [ ] **T1. Scaffold the Dockerized Rails API workspace.** Root `docker-compose.yml`
+- [x] **T1. Scaffold the Dockerized Rails API workspace.** Root `docker-compose.yml`
   (`db` + `backend` only, per D-P6), `backend/Dockerfile`, Rails API-mode skeleton,
   env-based configuration (`DATABASE_URL` / `POSTGRES_*`, `.env.example` with
   placeholders, updated `.gitignore`), and RSpec + FactoryBot wired (`.rspec`,
