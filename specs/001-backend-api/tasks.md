@@ -41,7 +41,7 @@ Rules:
     is green and `docker compose exec backend bundle exec rspec` finishes with 0
     failures — as one task-specific commit.
 
-- [ ] **T3. Routes, single error contract, and read/delete endpoints.** Exactly the
+- [x] **T3. Routes, single error contract, and read/delete endpoints.** Exactly the
   five `/api/v1/products` routes; `ApplicationController` with the one
   `render_error` helper + `rescue_from` handlers rendering the fixed shape
   (`error.code` / `message`, `details` only on 422 — D-P1); product serialization
