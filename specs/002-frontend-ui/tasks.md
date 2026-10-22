@@ -52,7 +52,7 @@ Rules:
     setup), and `docker compose exec frontend npm run build` is green — as
     one task-specific commit.
 
-- [ ] **T2. Contract types, plain-fetch API layer, and the mirror
+- [x] **T2. Contract types, plain-fetch API layer, and the mirror
   validators.** `src/types/api.ts` (`Product`, `ListingMeta`, envelopes,
   `ApiErrorBody`, `ApiError` with `status`/`code`/`details`; no unjustified
   `any`), `src/api/products.ts` (`listProducts`/`createProduct`/
