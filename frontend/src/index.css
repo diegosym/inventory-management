@@ -1,0 +1,12 @@
+@import 'tailwindcss';
+
+/* Design tokens (D-P20): the single source of styling truth (NFR-5). */
+@theme {
+  --color-brand: #2563eb;
+  --color-surface: #f8fafc;
+  --color-danger: #dc2626;
+  --color-success: #16a34a;
+  --radius-card: 0.5rem;
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}

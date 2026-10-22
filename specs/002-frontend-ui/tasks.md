@@ -32,7 +32,7 @@ Rules:
 
 ## Tasks
 
-- [ ] **T1. Scaffold the `frontend` service: compose, Vite, Tailwind, test
+- [x] **T1. Scaffold the `frontend` service: compose, Vite, Tailwind, test
   harness.** Modify `docker-compose.yml` (add the `frontend` service per
   D-P13: `node:22` via `frontend/Dockerfile`, `npm run dev` on 5173, bind
   mount + anonymous `node_modules` volume, env `VITE_API_BASE_URL`; `db` and
