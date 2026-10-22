@@ -55,7 +55,7 @@ Rules:
     `docker compose exec backend bundle exec rspec` is green — as one task-specific
     commit.
 
-- [ ] **T4. Create and update endpoints (full-replacement PUT).** `POST` → 201,
+- [x] **T4. Create and update endpoints (full-replacement PUT).** `POST` → 201,
   `PUT` → 200, both consuming the `{ "product": { … } }` wrapper (D-P10); 422 with
   per-field `details` for invalid data and nothing persisted; PUT semantics:
   required fields omitted/null → 422, `description` omitted/null → stored `""`,
