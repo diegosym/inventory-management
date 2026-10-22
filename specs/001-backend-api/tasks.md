@@ -68,7 +68,7 @@ Rules:
     `docker compose exec backend bundle exec rspec` is green — as one
     task-specific commit.
 
-- [ ] **T5. Listing endpoint: server-side pagination, search, and filter.** `index`
+- [x] **T5. Listing endpoint: server-side pagination, search, and filter.** `index`
   per the plan's pseudocode: fixed 10/page, `meta` (`current_page`,
   `total_count`, `total_pages`), `q` case-insensitive substring in PostgreSQL with
   `%`/`_` escaped and whitespace-only = no term, `active=true|false` filter,

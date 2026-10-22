@@ -6,6 +6,31 @@ module Api
       # string never reaches the PostgreSQL driver. T4 reuses it for update.
       before_action :find_product!, only: %i[show update destroy]
 
+      # GET /api/v1/products -> 200 { "data": [ … ], "meta": { … } } (RF-9…RF-14).
+      # Pagination (fixed 10/page), `q` search, and `active` filter are resolved
+      # in PostgreSQL and combined with the stable order
+      # `created_at DESC, id DESC` (C11, RF-12); malformed query params answer
+      # 422 with parameter-keyed details (RF-13, D-P11).
+      def index
+        param_errors = listing_param_errors
+        if param_errors.any?
+          return render_error(status: :unprocessable_entity,
+                              code: 'validation_failed',
+                              message: 'Validation failed',
+                              details: param_errors)
+        end
+
+        scope = listing_scope
+        total = scope.count
+        current_page = params.key?(:page) ? params[:page].to_i : 1
+        render json: {
+          data: scope.limit(10).offset((current_page - 1) * 10)
+                     .map { |product| serialize_product(product) },
+          meta: { current_page: current_page, total_count: total,
+                  total_pages: (total / 10.0).ceil }
+        }
+      end
+
       # GET /api/v1/products/:id -> 200 { "data": { product } } (plan D-P5/D-7)
       def show
         render json: { data: serialize_product(@product) }
@@ -40,6 +65,35 @@ module Api
 
       def find_product!
         @product = Product.find_by!(id: params[:id])
+      end
+
+      # RF-13 / D-P11: `page` must be a positive integer, `active` must be the
+      # string "true" or "false", `q` must be a string. Errors are keyed by the
+      # parameter name and reuse the standard 422 shape.
+      def listing_param_errors
+        errors = {}
+        if params.key?(:page) && !params[:page].to_s.match?(/\A[1-9]\d*\z/)
+          errors[:page] = ['must be a positive integer']
+        end
+        if params.key?(:active) && !%w[true false].include?(params[:active])
+          errors[:active] = ['must be true or false']
+        end
+        errors[:q] = ['must be a string'] if params.key?(:q) && !params[:q].is_a?(String)
+        errors
+      end
+
+      # The listing pipeline (plan pseudocode): filter and search in the
+      # database (C11), stable order, then limit/offset by hand (D-P3, no
+      # pagination gem). Whitespace-only `q` is no term (RF-10); `%`/`_` are
+      # escaped so they match literally.
+      def listing_scope
+        scope = Product.all
+        scope = scope.where(active: params[:active] == 'true') if params.key?(:active)
+        term = params[:q].strip if params[:q].is_a?(String)
+        if term.present?
+          scope = scope.where('name ILIKE ?', "%#{Product.sanitize_sql_like(term)}%")
+        end
+        scope.order(created_at: :desc, id: :desc)
       end
 
       def replacement_attributes
