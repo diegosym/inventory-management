@@ -18,17 +18,16 @@ with uncommitted changes.**
 - Foundation in place: `AGENTS.md`, `MEMORY.md`, `specs/README.md`, `.opencode/`
   (9 `/sdd-*` commands, 4 agents, 2 skills), `docs/Reto técnico.pdf` (source of
   truth, C2), `.gitignore`.
-- **Next (session interrupted 2026-10-22):** resume spec 002 **T7** (responsive
-  layout + accessibility pass) on `feature/002-frontend-ui`. Reviewed verdict: the
-  T7 WIP (uncommitted) is **keep it** — all T7 deliverables exist (`ProductRow`,
-  `ProductCard`, CSS-only split, Escape handling in the form modal, 8-test
-  `accessibility.test.tsx`) and the suite is green (54/54), but `npm run build`
-  **fails on 2× TS6133 unused-variable errors** (`accessibility.test.tsx:59`
-  unused `user` in `renderList`; `ProductCard.tsx:1` unused `Product` type
-  import). To finish T7: fix those two, re-run test + build, and land everything
-  as **one task-specific commit** (C17). Then T8 (README) → T9 (DoD gate) →
+- **Next (session 2026-10-22):** spec 002 at **T8 blocked on agent permissions**
+  (awaiting the user to apply the fix in `.opencode/agents/implementer.md` — neither
+  the coordinator nor the implementer may edit agent config: `edit: * → deny`,
+  `MEMORY.md`-only for the coordinator). T7 completed and verified: commit
+  `4c1b93f` (54/54 tests, build green, accessibility.test.tsx included). The T8
+  implementer drafted the full Spanish README (6 sections, D-P23) but could not
+  write it: root-repo paths and new-file creation are denied. Once permissions are
+  granted → relaunch `@implementer` for T8 (README) → T9 (DoD gate) →
   `/sdd-validate` → PR. React skill `.opencode/skills/vercel-react-best-practices/`
-  guides the code (NFR-3). Note: 12 commits on this branch are not pushed to origin.
+  guides the code (NFR-3). Note: branch commits are not pushed to origin.
 
 ## Key definitions (what is settled)
 
@@ -54,7 +53,7 @@ with uncommitted changes.**
 | Spec | Scope | Status |
 |---|---|---|
 | `001-backend-api` | Product model, validations, 5 endpoints, pagination/search/filter, seeds, RSpec | implemented + validated (PR) |
-| `002-frontend-ui` | List, form (modal), delete + confirmation, loading/error/empty states, responsive, Tailwind, README, frontend tests | implementing (T1–T6 committed; T7 WIP uncommitted; T8–T9 pending) |
+| `002-frontend-ui` | List, form (modal), delete + confirmation, loading/error/empty states, responsive, Tailwind, README, frontend tests | implementing (T1–T7 committed incl. `4c1b93f`; T8 blocked on agent permissions; T9 pending) |
 | `003-ci` | GitHub Actions: RSpec + frontend tests (if present) + build | pending (bonus) |
 | `004-data-integrity` | Soft delete + change audit | pending (bonus) |
 | `005-openapi` | API documentation | pending (bonus) |

@@ -29,6 +29,9 @@ permissions:
   - action: shell
     resource: "git commit*"
     effect: allow
+  - action: shell
+    resource: "curl*http://localhost*"
+    effect: allow
   - action: edit
     resource: "*"
     effect: deny
@@ -49,6 +52,9 @@ permissions:
     effect: allow
   - action: edit
     resource: ".env.example"
+    effect: allow
+  - action: edit
+    resource: "README.md"
     effect: allow
   - action: edit
     resource: "specs/**/tasks.md"
@@ -82,7 +88,7 @@ tarea de un plan aprobado: no lo rediseñas.
   finales y crea **un único commit** con implementación, pruebas y la actualización de
   `tasks.md` — sin nada ajeno y con mensaje descriptivo. Si el diff incluye algún
   archivo fuera de `backend/`, `frontend/`, la infraestructura contemplada en el plan
-  (p. ej. `docker-compose.yml`) o su `tasks.md`, PARA sin crear el commit y repórtalo;
+  (p. ej. `docker-compose.yml`), el `README.md` raíz cuando la tarea lo pida (T8) o su `tasks.md`, PARA sin crear el commit y repórtalo;
   lo mismo si algo falla o dudas de qué incluir.
 - **Simpleza (C5):** el código más simple que cumple la tarea; sin abstracciones
   especulativas ni capas que la spec no pide. **Dependencias (C6):** ninguna nueva sin
