@@ -13,6 +13,9 @@ interface ProductListProps {
   onPageChange: (page: number) => void
   onRetry: () => void
   onEdit: (product: Product) => void
+  onDelete: (product: Product) => void
+  /** Id of the row whose delete is in flight (its action is disabled). */
+  deletingId: number | null
 }
 
 // Toolbar + states + rows + pagination. Pagination and filtering are the
@@ -29,6 +32,8 @@ export function ProductList({
   onPageChange,
   onRetry,
   onEdit,
+  onDelete,
+  deletingId,
 }: ProductListProps) {
   const currentPage = meta?.current_page ?? 1
   const totalPages = meta?.total_pages ?? 1
@@ -92,13 +97,24 @@ export function ProductList({
                   <td className="py-2 pr-4">{product.stock}</td>
                   <td className="py-2 pr-4">{product.active ? 'Yes' : 'No'}</td>
                   <td className="py-2 pr-4">
-                    <button
-                      type="button"
-                      onClick={() => onEdit(product)}
-                      className="rounded-md border border-gray-300 px-2 py-1"
-                    >
-                      Edit
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => onEdit(product)}
+                        className="rounded-md border border-gray-300 px-2 py-1"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        aria-label={`Delete ${product.name}`}
+                        disabled={deletingId === product.id}
+                        onClick={() => onDelete(product)}
+                        className="rounded-md border border-gray-300 px-2 py-1 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

@@ -5,6 +5,8 @@ interface ConfirmDialogProps {
   message: string
   confirmLabel: string
   cancelLabel?: string
+  /** Keeps the confirm action inert while its request is pending (C15). */
+  confirmDisabled?: boolean
   onConfirm: () => void
   onCancel: () => void
 }
@@ -18,6 +20,7 @@ export function ConfirmDialog({
   message,
   confirmLabel,
   cancelLabel = 'Cancel',
+  confirmDisabled = false,
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
@@ -56,7 +59,8 @@ export function ConfirmDialog({
             ref={confirmRef}
             type="button"
             onClick={onConfirm}
-            className="rounded-md bg-brand px-4 py-2 font-medium text-white"
+            disabled={confirmDisabled}
+            className="rounded-md bg-brand px-4 py-2 font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
           >
             {confirmLabel}
           </button>

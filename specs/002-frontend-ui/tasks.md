@@ -123,7 +123,7 @@ Rules:
     the save-flow examples and `docker compose exec frontend npm run build`
     is green — as one task-specific commit.
 
-- [ ] **T6. Delete flow: confirmation naming the product, feedback, refresh.**
+- [x] **T6. Delete flow: confirmation naming the product, feedback, refresh.**
   Delete action on rows/cards (row's action disabled while pending) →
   `ConfirmDialog` naming the product → DELETE → success notification +
   `refresh()`; 404 → "already deleted" message + refresh; other failure →
