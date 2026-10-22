@@ -87,7 +87,7 @@ Rules:
     the list spec and `docker compose exec frontend npm run build` is green —
     as one task-specific commit.
 
-- [ ] **T4. Product form modal: fields, pre-fill, and live mirror
+- [x] **T4. Product form modal: fields, pre-fill, and live mirror
   validation.** `src/components/Field.tsx` (label + input + error `<p>` with
   `htmlFor`/`id`/`aria-invalid`/`aria-describedby`),
   `src/components/ProductFormModal.tsx` (single create/edit form, values as

@@ -12,6 +12,7 @@ interface ProductListProps {
   onActiveChange: (active: boolean | undefined) => void
   onPageChange: (page: number) => void
   onRetry: () => void
+  onEdit: (product: Product) => void
 }
 
 // Toolbar + states + rows + pagination. Pagination and filtering are the
@@ -27,6 +28,7 @@ export function ProductList({
   onActiveChange,
   onPageChange,
   onRetry,
+  onEdit,
 }: ProductListProps) {
   const currentPage = meta?.current_page ?? 1
   const totalPages = meta?.total_pages ?? 1
@@ -78,6 +80,7 @@ export function ProductList({
                 <th className="py-2 pr-4 font-semibold">Price</th>
                 <th className="py-2 pr-4 font-semibold">Stock</th>
                 <th className="py-2 pr-4 font-semibold">Active</th>
+                <th className="py-2 pr-4 font-semibold">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -88,6 +91,15 @@ export function ProductList({
                   <td className="py-2 pr-4">{product.price}</td>
                   <td className="py-2 pr-4">{product.stock}</td>
                   <td className="py-2 pr-4">{product.active ? 'Yes' : 'No'}</td>
+                  <td className="py-2 pr-4">
+                    <button
+                      type="button"
+                      onClick={() => onEdit(product)}
+                      className="rounded-md border border-gray-300 px-2 py-1"
+                    >
+                      Edit
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
