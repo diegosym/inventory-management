@@ -147,7 +147,7 @@ Rules:
     the accessibility assertions and `docker compose exec frontend npm run
     build` is green — as one task-specific commit.
 
-- [ ] **T8. README rewrite.** Root `README.md` in Spanish (D-P23) with the
+- [x] **T8. README rewrite.** Root `README.md` in Spanish (D-P23) with the
   plan's six sections, coherent with the real repository: what the
   application is · how to run everything (`cp .env.example .env`,
   `docker compose up -d --build`, URLs) · how to run each test suite ·
