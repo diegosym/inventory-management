@@ -17,8 +17,8 @@ planning.**
 - Foundation in place: `AGENTS.md`, `MEMORY.md`, `specs/README.md`, `.opencode/`
   (9 `/sdd-*` commands, 4 agents, 2 skills), `docs/Reto técnico.pdf` (source of
   truth, C2), `.gitignore`.
-- **Next:** `/sdd-plan 002-frontend-ui` → tasks → implementation on
-  `feature/002-frontend-ui`.
+- **Next:** `tasks.md` for 002 → implementation on `feature/002-frontend-ui`
+  (React skill `.opencode/skills/vercel-react-best-practices/` guides the code).
 
 ## Key definitions (what is settled)
 
@@ -44,7 +44,7 @@ planning.**
 | Spec | Scope | Status |
 |---|---|---|
 | `001-backend-api` | Product model, validations, 5 endpoints, pagination/search/filter, seeds, RSpec | implemented + validated (PR) |
-| `002-frontend-ui` | List, form (modal), delete + confirmation, loading/error/empty states, responsive, Tailwind, README, frontend tests | approved — drafting plan |
+| `002-frontend-ui` | List, form (modal), delete + confirmation, loading/error/empty states, responsive, Tailwind, README, frontend tests | plan approved — drafting tasks |
 | `003-ci` | GitHub Actions: RSpec + frontend tests (if present) + build | pending (bonus) |
 | `004-data-integrity` | Soft delete + change audit | pending (bonus) |
 | `005-openapi` | API documentation | pending (bonus) |
@@ -135,6 +135,12 @@ Environment notes:
   the spec approval: search debounce ~300 ms (server-side `q`, resets to page 1),
   literal save-confirmation dialog before every create/edit, and RF-12 accessibility
   (labels/error association/keyboard) in scope (user).
+- **D-11 (spec 002, interpretation of NFR-4):** NFR-4 is satisfied with the
+  **env-driven API base URL** (`VITE_API_BASE_URL`) plus the **documented fixed
+  dev-server origin default `http://localhost:5173`** — RF-1 of the same spec pins
+  that default and CORS already defaults to it (D-9). The dev-server host/port stays
+  in `vite.config.ts` and does not go through env vars. User-approved ruling; no
+  plan amendment needed.
 
 ## Open decisions (OPEN DECISION)
 
