@@ -2,6 +2,8 @@ import { useState } from 'react'
 
 import { ProductFormModal } from './components/ProductFormModal'
 import { ProductList } from './components/ProductList'
+import { Notification } from './components/Notification'
+import type { Notice } from './components/Notification'
 import { useProducts } from './hooks/useProducts'
 import type { Product } from './types/api'
 
@@ -12,47 +14,71 @@ type ModalState =
   | { mode: 'create' }
   | { mode: 'edit'; product: Product }
 
-// Wires the listing hook (D-P16) and the form modal (RF-5) into one view.
+// Wires the listing hook (D-P16), the form modal (RF-5), and the persistent
+// notification (C15) into one view.
 function App() {
   const { products, meta, status, q, active, setQ, setActive, setPage, retry, refresh } =
     useProducts()
   const [modal, setModal] = useState<ModalState>({ mode: 'closed' })
+  const [notice, setNotice] = useState<Notice | null>(null)
 
+  // RF-7/RF-4: success notifies, closes, and refreshes.
   function handleSaved(): void {
+    setNotice({ kind: 'success', message: 'Product saved.' })
     setModal({ mode: 'closed' })
     refresh()
   }
 
+  // RF-9: the edit target is gone — inform, close, refresh.
+  function handleNotFound(): void {
+    setNotice({ kind: 'error', message: 'This product no longer exists.' })
+    setModal({ mode: 'closed' })
+    refresh()
+  }
+
+  // RF-11: any other failure keeps the form open and informs via notification.
+  function handleError(message: string): void {
+    setNotice({ kind: 'error', message })
+  }
+
   return (
     <main className="mx-auto max-w-5xl space-y-6 bg-surface p-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-brand">Inventory Management</h1>
-        <button
-          type="button"
-          onClick={() => setModal({ mode: 'create' })}
-          className="rounded-md bg-brand px-4 py-2 font-medium text-white hover:opacity-90"
-        >
-          New product
-        </button>
+      {/* Background inert while a modal is open (D-P19, RF-12). */}
+      <div inert={modal.mode !== 'closed'} className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-brand">Inventory Management</h1>
+          <button
+            type="button"
+            onClick={() => setModal({ mode: 'create' })}
+            className="rounded-md bg-brand px-4 py-2 font-medium text-white hover:opacity-90"
+          >
+            New product
+          </button>
+        </div>
+        <ProductList
+          products={products}
+          meta={meta}
+          status={status}
+          q={q}
+          active={active}
+          onQChange={setQ}
+          onActiveChange={setActive}
+          onPageChange={setPage}
+          onRetry={retry}
+          onEdit={(product) => setModal({ mode: 'edit', product })}
+        />
       </div>
-      <ProductList
-        products={products}
-        meta={meta}
-        status={status}
-        q={q}
-        active={active}
-        onQChange={setQ}
-        onActiveChange={setActive}
-        onPageChange={setPage}
-        onRetry={retry}
-        onEdit={(product) => setModal({ mode: 'edit', product })}
-      />
       {modal.mode === 'closed' ? null : (
         <ProductFormModal
           product={modal.mode === 'edit' ? modal.product : undefined}
           onCancel={() => setModal({ mode: 'closed' })}
           onSaved={handleSaved}
+          onNotFound={handleNotFound}
+          onError={handleError}
         />
+      )}
+      {notice === null ? null : (
+        <Notification notice={notice} onDismiss={() => setNotice(null)} />
       )}
     </main>
   )

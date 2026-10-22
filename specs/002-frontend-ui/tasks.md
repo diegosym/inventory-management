@@ -104,7 +104,7 @@ Rules:
     `docker compose exec frontend npm run build` is green — as one
     task-specific commit.
 
-- [ ] **T5. Save flow: confirmation, pending state, success, and the
+- [x] **T5. Save flow: confirmation, pending state, success, and the
   422/404/other error contracts.** `src/components/ConfirmDialog.tsx`
   (`role="dialog"`, `aria-modal`, Escape, focus move, `inert` background —
   reused by T6) and `src/components/Notification.tsx` (persistent until
