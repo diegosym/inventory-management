@@ -9,14 +9,16 @@ lessons, or development commands); skip routine passes with nothing new.
 ## Project status
 
 **Inventory Management** — product CRUD challenge (Rails API + React/TS).
-**Backend implemented and validated (spec 001); frontend not started.**
+**Backend implemented and validated (spec 001); spec 002 (frontend) approved,
+planning.**
 
 - **Constitution established:** `docs/constitution.md` is official and approved —
   C1–C17, no amendments pending. No ADRs in this project: decisions live here (C4).
 - Foundation in place: `AGENTS.md`, `MEMORY.md`, `specs/README.md`, `.opencode/`
   (9 `/sdd-*` commands, 4 agents, 2 skills), `docs/Reto técnico.pdf` (source of
   truth, C2), `.gitignore`.
-- **Next:** merge the `feature/001-backend-api` PR → `/sdd-spec 002-frontend-ui`.
+- **Next:** `/sdd-plan 002-frontend-ui` → tasks → implementation on
+  `feature/002-frontend-ui`.
 
 ## Key definitions (what is settled)
 
@@ -42,7 +44,7 @@ lessons, or development commands); skip routine passes with nothing new.
 | Spec | Scope | Status |
 |---|---|---|
 | `001-backend-api` | Product model, validations, 5 endpoints, pagination/search/filter, seeds, RSpec | implemented + validated (PR) |
-| `002-frontend-ui` | List, form, delete + confirmation, loading/error/empty states, responsive, Tailwind | pending |
+| `002-frontend-ui` | List, form (modal), delete + confirmation, loading/error/empty states, responsive, Tailwind, README, frontend tests | approved — drafting plan |
 | `003-ci` | GitHub Actions: RSpec + frontend tests (if present) + build | pending (bonus) |
 | `004-data-integrity` | Soft delete + change audit | pending (bonus) |
 | `005-openapi` | API documentation | pending (bonus) |
@@ -126,6 +128,13 @@ Environment notes:
   POST/PUT bodies without the `{ "product": … }` envelope answer 422 (treated as an
   empty product); CORS is restricted to `/api/v1/*` with `FRONTEND_ORIGIN` (default
   `http://localhost:5173`).
+- **D-10 (spec 002, approved with the spec):** frontend test stack = **Vitest +
+  React Testing Library** (RF-14, suite via `docker compose run --rm frontend npm
+  test`) — recorded before code per C6/D-3; **React Query and react-router are NOT
+  adopted**: plain `fetch` and a single-view modal UI (C6, user decision). Also from
+  the spec approval: search debounce ~300 ms (server-side `q`, resets to page 1),
+  literal save-confirmation dialog before every create/edit, and RF-12 accessibility
+  (labels/error association/keyboard) in scope (user).
 
 ## Open decisions (OPEN DECISION)
 
