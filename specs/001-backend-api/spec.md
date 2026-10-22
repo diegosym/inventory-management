@@ -1,6 +1,6 @@
 # Spec 001 — Backend API (Product CRUD)
 
-Status: approved
+Status: implemented
 
 ## Context and goal
 

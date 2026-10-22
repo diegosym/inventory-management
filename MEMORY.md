@@ -8,15 +8,15 @@ lessons, or development commands); skip routine passes with nothing new.
 
 ## Project status
 
-**Inventory Management** — product CRUD challenge (Rails API + React/TS). **No
-application code yet.**
+**Inventory Management** — product CRUD challenge (Rails API + React/TS).
+**Backend implemented and validated (spec 001); frontend not started.**
 
 - **Constitution established:** `docs/constitution.md` is official and approved —
   C1–C17, no amendments pending. No ADRs in this project: decisions live here (C4).
 - Foundation in place: `AGENTS.md`, `MEMORY.md`, `specs/README.md`, `.opencode/`
   (9 `/sdd-*` commands, 4 agents, 2 skills), `docs/Reto técnico.pdf` (source of
   truth, C2), `.gitignore`.
-- **Next:** first commit (pending user authorization) → `/sdd-spec 001-backend-api`.
+- **Next:** merge the `feature/001-backend-api` PR → `/sdd-spec 002-frontend-ui`.
 
 ## Key definitions (what is settled)
 
@@ -41,7 +41,7 @@ application code yet.**
 
 | Spec | Scope | Status |
 |---|---|---|
-| `001-backend-api` | Product model, validations, 5 endpoints, pagination/search/filter, seeds, RSpec | approved — implementing on `feature/001-backend-api` |
+| `001-backend-api` | Product model, validations, 5 endpoints, pagination/search/filter, seeds, RSpec | implemented + validated (PR) |
 | `002-frontend-ui` | List, form, delete + confirmation, loading/error/empty states, responsive, Tailwind | pending |
 | `003-ci` | GitHub Actions: RSpec + frontend tests (if present) + build | pending (bonus) |
 | `004-data-integrity` | Soft delete + change audit | pending (bonus) |
@@ -120,6 +120,12 @@ Environment notes:
 - **D-8 (branch workflow):** each spec is implemented on its own branch
   `feature/<spec-name>` (first: `feature/001-backend-api`); when the spec is fully
   implemented and validated, the branch goes to `main` via a pull request.
+- **D-9 (spec 001, mirror notes for 002):** frontend must replicate exactly — the
+  `price` validation message `"must have at most 2 decimal places"` (key `price`);
+  `active` must be sent as a JSON boolean (raw-value validation rejects `"yes"`);
+  POST/PUT bodies without the `{ "product": … }` envelope answer 422 (treated as an
+  empty product); CORS is restricted to `/api/v1/*` with `FRONTEND_ORIGIN` (default
+  `http://localhost:5173`).
 
 ## Open decisions (OPEN DECISION)
 
@@ -138,4 +144,6 @@ Environment notes:
 
 ## Lessons learned
 
-- None recorded yet.
+- Do not edit `MEMORY.md` in parallel with an implementer task: the uncommitted note
+  blocks the implementer's git-status check (it stopped T2 correctly); batch MEMORY
+  updates between tasks or into the task's own docs commit.
