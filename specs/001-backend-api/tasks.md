@@ -82,7 +82,7 @@ Rules:
     `docker compose exec backend bundle exec rspec` is green — as one
     task-specific commit.
 
-- [ ] **T6. CORS for the frontend origin.** `rack-cors` initializer allowing the
+- [x] **T6. CORS for the frontend origin.** `rack-cors` initializer allowing the
   origin from `FRONTEND_ORIGIN`, methods `GET POST PUT DELETE OPTIONS`, any
   headers; request specs asserting `Access-Control-Allow-Origin` on a normal
   request and on a preflight `OPTIONS` (in `error_contract_spec.rb` per the plan).

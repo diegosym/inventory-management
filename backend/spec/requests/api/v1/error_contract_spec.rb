@@ -20,4 +20,38 @@ RSpec.describe 'Error contract' do
       expect(response.body).not_to include('secret database detail')
     end
   end
+
+  # T6: CORS for the frontend origin (RF-8) — the allowed origin from
+  # FRONTEND_ORIGIN gets Allow-Origin on a simple request and on the preflight
+  # OPTIONS; any other origin gets no CORS headers at all.
+  describe 'CORS' do
+    let(:frontend_origin) { ENV.fetch('FRONTEND_ORIGIN', 'http://localhost:5173') }
+
+    it 'answers a preflight OPTIONS with the allowed methods and headers' do
+      options '/api/v1/products', headers: {
+        'Origin' => frontend_origin,
+        'Access-Control-Request-Method' => 'PUT',
+        'Access-Control-Request-Headers' => 'Content-Type'
+      }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.headers['Access-Control-Allow-Origin']).to eq(frontend_origin)
+      expect(response.headers['Access-Control-Allow-Methods']).to include('PUT', 'DELETE', 'OPTIONS')
+      expect(response.headers['Access-Control-Allow-Headers']).to include('Content-Type')
+    end
+
+    it 'includes Allow-Origin on a normal cross-origin request' do
+      get '/api/v1/products', headers: { 'Origin' => frontend_origin }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.headers['Access-Control-Allow-Origin']).to eq(frontend_origin)
+    end
+
+    it 'omits CORS headers for a disallowed origin' do
+      get '/api/v1/products', headers: { 'Origin' => 'http://evil.example' }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.headers['Access-Control-Allow-Origin']).to be_nil
+    end
+  end
 end
