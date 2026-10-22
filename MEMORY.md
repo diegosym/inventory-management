@@ -18,15 +18,13 @@ with uncommitted changes.**
 - Foundation in place: `AGENTS.md`, `MEMORY.md`, `specs/README.md`, `.opencode/`
   (9 `/sdd-*` commands, 4 agents, 2 skills), `docs/Reto técnico.pdf` (source of
   truth, C2), `.gitignore`.
-- **Next (session 2026-10-22):** spec 002 **T1–T9 all implemented; T9 DoD gate
-  green** (frontend 54/54, backend rspec 90/0, build green, API smoke 12 flows
-  green, README verified; gate found nothing to change → no T9 commit, tasks.md
-  `[x]` mark pending for the closing docs commit). Pending: (1) `/sdd-validate`
-  with @reviewer, (2) the **manual UI smoke in a real browser was NOT performed**
-  (no desktop browser connected — user must enable it, do the smoke themselves,
-  or explicitly waive it; logic is covered by the 54 tests), (3) then PR.
-  React skill `.opencode/skills/vercel-react-best-practices/` guides the code
-  (NFR-3). Note: branch commits are not pushed to origin.
+- **Next (session 2026-10-22):** spec 002 **validated — `VEREDICTO: APROBADO`**
+  (reviewer, 1 correction round: RF-8 all-422-messages + RF-14 create-POST coverage
+  fixed in `ad304ac`; suite 57/57, backend 90/0, build green). Remaining: (1) the
+  **manual browser smoke was never executed** — user must enable the desktop
+  browser, do it themselves, or explicitly waive it (logic covered by tests),
+  (2) docs close-out (T9 `[x]`, spec status → implemented), (3) push 18+ commits
+  and open the PR to `main` (D-8). React skill per NFR-3 throughout.
 
 ## Key definitions (what is settled)
 
@@ -52,7 +50,7 @@ with uncommitted changes.**
 | Spec | Scope | Status |
 |---|---|---|
 | `001-backend-api` | Product model, validations, 5 endpoints, pagination/search/filter, seeds, RSpec | implemented + validated (PR) |
-| `002-frontend-ui` | List, form (modal), delete + confirmation, loading/error/empty states, responsive, Tailwind, README, frontend tests | implementing done (T1–T9, T9 gate green); `/sdd-validate` pending; manual browser smoke pending (see Next) |
+| `002-frontend-ui` | List, form (modal), delete + confirmation, loading/error/empty states, responsive, Tailwind, README, frontend tests | validated (`VEREDICTO: APROBADO`, suite 57/57 + backend 90/0); docs close-out + PR pending; manual browser smoke outstanding |
 | `003-ci` | GitHub Actions: RSpec + frontend tests (if present) + build | pending (bonus) |
 | `004-data-integrity` | Soft delete + change audit | pending (bonus) |
 | `005-openapi` | API documentation | pending (bonus) |
@@ -180,3 +178,10 @@ Environment notes:
 - Do not edit `MEMORY.md` in parallel with an implementer task: the uncommitted note
   blocks the implementer's git-status check (it stopped T2 correctly); batch MEMORY
   updates between tasks or into the task's own docs commit.
+- Agent permission allowlists (`edit: * → deny` + explicit allows in
+  `.opencode/agents/*.md`) can stall a task when its file surface exceeds the
+  allowlist (T8 needed root `README.md`, initially denied). When a task needs a
+  path outside the allowlist, fix the agent frontmatter first (user-approved) —
+  neither coordinator nor subagents can edit agent config themselves (by design).
+- The implementer cannot run visual browser smoke (no desktop browser connected);
+  UI-heavy Done-when items should plan for a user-run smoke or an explicit waiver.
