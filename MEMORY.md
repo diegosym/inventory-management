@@ -81,6 +81,8 @@ docker compose down
 
 Environment notes:
 
+- **First run:** `cp .env.example .env` — compose requires `POSTGRES_PASSWORD` (no
+  secrets committed, C16).
 - Images: `ruby:3.3` (already local), `postgres:16` and `node:22` (to pull).
 - **Never run `ruby`, `bundle`, `rails`, `node`, or `npm` on the host**: host Ruby is
   2.6 and host Node is 13 — both unusable. Everything goes through compose.
