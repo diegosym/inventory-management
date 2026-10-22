@@ -23,9 +23,19 @@ module Api
         scope = listing_scope
         total = scope.count
         current_page = params.key?(:page) ? params[:page].to_i : 1
+        offset = (current_page - 1) * 10
+        # RF-13: a valid page beyond the data set never reaches PostgreSQL —
+        # an offset past `total` can only return nothing, and sending a huge
+        # one would overflow the bigint OFFSET and turn a well-formed request
+        # into a 500 (RF-7 reserves 500 for unexpected errors).
+        data = if offset > total
+                 []
+               else
+                 scope.limit(10).offset(offset)
+                      .map { |product| serialize_product(product) }
+               end
         render json: {
-          data: scope.limit(10).offset((current_page - 1) * 10)
-                     .map { |product| serialize_product(product) },
+          data: data,
           meta: { current_page: current_page, total_count: total,
                   total_pages: (total / 10.0).ceil }
         }

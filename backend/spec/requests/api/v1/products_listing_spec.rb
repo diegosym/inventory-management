@@ -241,5 +241,30 @@ RSpec.describe 'Api::V1::Products listing' do
                'meta' => { 'current_page' => 5, 'total_count' => 3,
                            'total_pages' => 1 })
     end
+
+    # Regression (reviewer finding, RF-13/RF-7): a valid `page` too large for
+    # the database OFFSET is still a well-formed out-of-range page, so it
+    # answers 200 with an empty list echoing the requested page — never a 500.
+    it 'answers 200 echoing a page too large for the database offset' do
+      create_list(:product, 3)
+
+      get '/api/v1/products', params: { page: '99999999999999999999' }
+
+      expect(response).to have_http_status(:ok)
+      expect(JSON.parse(response.body))
+        .to eq('data' => [],
+               'meta' => { 'current_page' => 99_999_999_999_999_999_999,
+                           'total_count' => 3, 'total_pages' => 1 })
+    end
+
+    it 'answers 200 echoing an oversized page when the table is empty' do
+      get '/api/v1/products', params: { page: '99999999999999999999' }
+
+      expect(response).to have_http_status(:ok)
+      expect(JSON.parse(response.body))
+        .to eq('data' => [],
+               'meta' => { 'current_page' => 99_999_999_999_999_999_999,
+                           'total_count' => 0, 'total_pages' => 0 })
+    end
   end
 end
