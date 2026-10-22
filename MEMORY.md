@@ -18,16 +18,15 @@ with uncommitted changes.**
 - Foundation in place: `AGENTS.md`, `MEMORY.md`, `specs/README.md`, `.opencode/`
   (9 `/sdd-*` commands, 4 agents, 2 skills), `docs/Reto técnico.pdf` (source of
   truth, C2), `.gitignore`.
-- **Next (session 2026-10-22):** spec 002 at **T8 blocked on agent permissions**
-  (awaiting the user to apply the fix in `.opencode/agents/implementer.md` — neither
-  the coordinator nor the implementer may edit agent config: `edit: * → deny`,
-  `MEMORY.md`-only for the coordinator). T7 completed and verified: commit
-  `4c1b93f` (54/54 tests, build green, accessibility.test.tsx included). The T8
-  implementer drafted the full Spanish README (6 sections, D-P23) but could not
-  write it: root-repo paths and new-file creation are denied. Once permissions are
-  granted → relaunch `@implementer` for T8 (README) → T9 (DoD gate) →
-  `/sdd-validate` → PR. React skill `.opencode/skills/vercel-react-best-practices/`
-  guides the code (NFR-3). Note: branch commits are not pushed to origin.
+- **Next (session 2026-10-22):** spec 002 **T1–T9 all implemented; T9 DoD gate
+  green** (frontend 54/54, backend rspec 90/0, build green, API smoke 12 flows
+  green, README verified; gate found nothing to change → no T9 commit, tasks.md
+  `[x]` mark pending for the closing docs commit). Pending: (1) `/sdd-validate`
+  with @reviewer, (2) the **manual UI smoke in a real browser was NOT performed**
+  (no desktop browser connected — user must enable it, do the smoke themselves,
+  or explicitly waive it; logic is covered by the 54 tests), (3) then PR.
+  React skill `.opencode/skills/vercel-react-best-practices/` guides the code
+  (NFR-3). Note: branch commits are not pushed to origin.
 
 ## Key definitions (what is settled)
 
@@ -53,7 +52,7 @@ with uncommitted changes.**
 | Spec | Scope | Status |
 |---|---|---|
 | `001-backend-api` | Product model, validations, 5 endpoints, pagination/search/filter, seeds, RSpec | implemented + validated (PR) |
-| `002-frontend-ui` | List, form (modal), delete + confirmation, loading/error/empty states, responsive, Tailwind, README, frontend tests | implementing (T1–T7 committed incl. `4c1b93f`; T8 blocked on agent permissions; T9 pending) |
+| `002-frontend-ui` | List, form (modal), delete + confirmation, loading/error/empty states, responsive, Tailwind, README, frontend tests | implementing done (T1–T9, T9 gate green); `/sdd-validate` pending; manual browser smoke pending (see Next) |
 | `003-ci` | GitHub Actions: RSpec + frontend tests (if present) + build | pending (bonus) |
 | `004-data-integrity` | Soft delete + change audit | pending (bonus) |
 | `005-openapi` | API documentation | pending (bonus) |
@@ -134,9 +133,13 @@ Environment notes:
 - **D-9 (spec 001, mirror notes for 002):** frontend must replicate exactly — the
   `price` validation message `"must have at most 2 decimal places"` (key `price`);
   `active` must be sent as a JSON boolean (raw-value validation rejects `"yes"`);
-  POST/PUT bodies without the `{ "product": … }` envelope answer 422 (treated as an
-  empty product); CORS is restricted to `/api/v1/*` with `FRONTEND_ORIGIN` (default
-  `http://localhost:5173`).
+  **precision (T9 gate, 2026-10-22):** the 422 "no `{ "product": … }` envelope"
+  applies to an **empty/absent body** (validated by spec 001's RSpec); a JSON body
+  with top-level product keys is accepted as 201/200 because Rails API mode's
+  default `wrap_parameters` folds them into `params[:product]` — behavior of the
+  approved spec 001 backend, unchanged; the frontend always sends the envelope so
+  the mirror rule is unaffected; CORS is restricted to `/api/v1/*` with
+  `FRONTEND_ORIGIN` (default `http://localhost:5173`).
 - **D-10 (spec 002, approved with the spec):** frontend test stack = **Vitest +
   React Testing Library** (RF-14, suite via `docker compose run --rm frontend npm
   test`) — recorded before code per C6/D-3; **React Query and react-router are NOT
