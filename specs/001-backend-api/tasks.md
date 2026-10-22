@@ -29,7 +29,7 @@ Rules:
     compose database, and `docker compose exec backend bundle exec rspec` runs
     green — as one task-specific commit.
 
-- [ ] **T2. Product model: migration, validations, and SKU normalization.**
+- [x] **T2. Product model: migration, validations, and SKU normalization.**
   `create_products` migration (columns per plan, unique index on `sku`) and the
   `Product` model holding every rule: name 3–100, description ≤ 1000, price
   decimal scale 2 / > 0 / ≤ 2 decimals, stock integer ≥ 0, SKU present +
