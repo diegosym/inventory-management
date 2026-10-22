@@ -1,0 +1,23 @@
+# macOS
+.DS_Store
+
+# Secrets and environment files (C16)
+.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+vendor/bundle/
+.bundle/
+
+# Ruby / Rails
+log/
+tmp/
+coverage/
+*.log
+
+# Editors
+*.swp
+.idea/
+.vscode/
