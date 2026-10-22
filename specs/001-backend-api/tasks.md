@@ -92,7 +92,7 @@ Rules:
     `docker compose exec backend bundle exec rspec` is green — as one task-specific
     commit.
 
-- [ ] **T7. Idempotent demo seeds.** `db/seeds.rb` with `find_or_create_by!(sku:)`
+- [x] **T7. Idempotent demo seeds.** `db/seeds.rb` with `find_or_create_by!(sku:)`
   producing > 10 products (two+ pages), active/inactive mix, D-6-valid SKUs,
   prices > 0, varied names that exercise `q`; `spec/seeds_spec.rb` running
   `Rails.application.load_seed` twice and asserting dataset shape + unchanged
