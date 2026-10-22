@@ -8,15 +8,15 @@ lessons, or development commands); skip routine passes with nothing new.
 
 ## Project status
 
-**Inventory Management** — product CRUD challenge (Rails API + React/TS). **No
-application code yet.**
+**Inventory Management** — product CRUD challenge (Rails API + React/TS).
+**Backend implemented and validated (spec 001); frontend not started.**
 
 - **Constitution established:** `docs/constitution.md` is official and approved —
   C1–C17, no amendments pending. No ADRs in this project: decisions live here (C4).
 - Foundation in place: `AGENTS.md`, `MEMORY.md`, `specs/README.md`, `.opencode/`
   (9 `/sdd-*` commands, 4 agents, 2 skills), `docs/Reto técnico.pdf` (source of
   truth, C2), `.gitignore`.
-- **Next:** first commit (pending user authorization) → `/sdd-spec 001-backend-api`.
+- **Next:** merge the `feature/001-backend-api` PR → `/sdd-spec 002-frontend-ui`.
 
 ## Key definitions (what is settled)
 
@@ -41,7 +41,7 @@ application code yet.**
 
 | Spec | Scope | Status |
 |---|---|---|
-| `001-backend-api` | Product model, validations, 5 endpoints, pagination/search/filter, seeds, RSpec | pending |
+| `001-backend-api` | Product model, validations, 5 endpoints, pagination/search/filter, seeds, RSpec | implemented + validated (PR) |
 | `002-frontend-ui` | List, form, delete + confirmation, loading/error/empty states, responsive, Tailwind | pending |
 | `003-ci` | GitHub Actions: RSpec + frontend tests (if present) + build | pending (bonus) |
 | `004-data-integrity` | Soft delete + change audit | pending (bonus) |
@@ -81,6 +81,8 @@ docker compose down
 
 Environment notes:
 
+- **First run:** `cp .env.example .env` — compose requires `POSTGRES_PASSWORD` (no
+  secrets committed, C16).
 - Images: `ruby:3.3` (already local), `postgres:16` and `node:22` (to pull).
 - **Never run `ruby`, `bundle`, `rails`, `node`, or `npm` on the host**: host Ruby is
   2.6 and host Node is 13 — both unusable. Everything goes through compose.
@@ -108,6 +110,22 @@ Environment notes:
   authority, and uniqueness is backed by a unique index in PostgreSQL. Normalization
   example: `abc-123` → `ABC-123`. Valid: `ABC123`, `ABC-123`, `A-1`. Invalid:
   `ABC 123`, `abc@123`, `ÁBC123`.
+- **D-7 (spec 001, approved with the plan):** API contract details that spec 002 must
+  mirror — error shape `{ "error": { code, message, details } }` (`details` only on
+  422, keyed by field); listing/search params `q` (+ `page`, `active`), success
+  envelope `{ data, meta: { current_page, total_count, total_pages } }`; `price`
+  serialized as a decimal string (`"49.99"`); compose ships `db` + `backend` in 001,
+  with the `frontend` service added in 002; gems: `pg`, `rack-cors`, `rspec-rails`,
+  `factory_bot_rails` (no Kaminari/Pagy/Faker — C6).
+- **D-8 (branch workflow):** each spec is implemented on its own branch
+  `feature/<spec-name>` (first: `feature/001-backend-api`); when the spec is fully
+  implemented and validated, the branch goes to `main` via a pull request.
+- **D-9 (spec 001, mirror notes for 002):** frontend must replicate exactly — the
+  `price` validation message `"must have at most 2 decimal places"` (key `price`);
+  `active` must be sent as a JSON boolean (raw-value validation rejects `"yes"`);
+  POST/PUT bodies without the `{ "product": … }` envelope answer 422 (treated as an
+  empty product); CORS is restricted to `/api/v1/*` with `FRONTEND_ORIGIN` (default
+  `http://localhost:5173`).
 
 ## Open decisions (OPEN DECISION)
 
@@ -126,4 +144,6 @@ Environment notes:
 
 ## Lessons learned
 
-- None recorded yet.
+- Do not edit `MEMORY.md` in parallel with an implementer task: the uncommitted note
+  blocks the implementer's git-status check (it stopped T2 correctly); batch MEMORY
+  updates between tasks or into the task's own docs commit.
