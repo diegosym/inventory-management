@@ -17,8 +17,8 @@ planning.**
 - Foundation in place: `AGENTS.md`, `MEMORY.md`, `specs/README.md`, `.opencode/`
   (9 `/sdd-*` commands, 4 agents, 2 skills), `docs/Reto técnico.pdf` (source of
   truth, C2), `.gitignore`.
-- **Next:** `tasks.md` for 002 → implementation on `feature/002-frontend-ui`
-  (React skill `.opencode/skills/vercel-react-best-practices/` guides the code).
+- **Next:** implement 002 tasks T1→T9 on `feature/002-frontend-ui` (React skill
+  `.opencode/skills/vercel-react-best-practices/` guides the code) → validate → PR.
 
 ## Key definitions (what is settled)
 
@@ -44,7 +44,7 @@ planning.**
 | Spec | Scope | Status |
 |---|---|---|
 | `001-backend-api` | Product model, validations, 5 endpoints, pagination/search/filter, seeds, RSpec | implemented + validated (PR) |
-| `002-frontend-ui` | List, form (modal), delete + confirmation, loading/error/empty states, responsive, Tailwind, README, frontend tests | plan approved — drafting tasks |
+| `002-frontend-ui` | List, form (modal), delete + confirmation, loading/error/empty states, responsive, Tailwind, README, frontend tests | implementing (tasks T1–T9) |
 | `003-ci` | GitHub Actions: RSpec + frontend tests (if present) + build | pending (bonus) |
 | `004-data-integrity` | Soft delete + change audit | pending (bonus) |
 | `005-openapi` | API documentation | pending (bonus) |
