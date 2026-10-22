@@ -141,6 +141,12 @@ Environment notes:
   that default and CORS already defaults to it (D-9). The dev-server host/port stays
   in `vite.config.ts` and does not go through env vars. User-approved ruling; no
   plan amendment needed.
+- **D-12 (spec 002, mirror source of truth):** the frontend mirrors the **live
+  backend messages of 001** (`backend/app/models/product.rb` + its specs), not the
+  prose examples of the plan (erratum found in plan D-P18 during T2 and corrected):
+  blank `price`/`stock` → `"is not a number"`, `name` >100 → `"is too long (maximum
+  is 100 characters)"`, negative price → `"must be greater than 0"` (validation
+  order: numeric → >0 → ≤2 decimals). C14/RF-6 prevail over plan examples.
 
 ## Open decisions (OPEN DECISION)
 

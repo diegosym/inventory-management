@@ -112,7 +112,7 @@ convert it to a JS `number` (binary floats turn `49.99` into `49.99000…`):
 ```
 open edit:        form.price = product.price              # "49.99" passthrough, no Number()
 typing:           sanitize input to /^\d*(\.\d*)?$/       # strips junk, keeps what the user typed
-validate:         ""                      -> "can't be blank"
+validate:         ""                      -> "is not a number"
                   !/^\d+(\.\d{1,2})?$/   -> "must have at most 2 decimal places"   # exact literal, D-9
                   Number(v) <= 0         -> "must be greater than 0"               # comparison only
 submit:           price: form.price.trim()                # sent as the JSON string "49.99"
@@ -131,11 +131,11 @@ Client messages copy the backend's Rails defaults exactly, so the mirror and the
 422 `details` the server renders under the same field are the same text:
 
 - `name`: "can't be blank", "is too short (minimum is 3 characters)",
-  "is too long (maximum is 100)".
+  "is too long (maximum is 100 characters)".
 - `description`: "is too long (maximum is 1000 characters)".
-- `price`: "can't be blank", "must have at most 2 decimal places" (D-9 exact),
+- `price`: "is not a number", "must have at most 2 decimal places" (D-9 exact),
   "must be greater than 0".
-- `stock`: "can't be blank", "must be an integer", "must be greater than or
+- `stock`: "is not a number", "must be an integer", "must be greater than or
   equal to 0".
 - `sku`: "can't be blank", "is invalid" (charset `[A-Z0-9-]+`).
 - Uniqueness is **not** mirrored client-side (server-only rule): it surfaces as
@@ -214,9 +214,14 @@ docker compose exec backend bundle exec rspec   # regression: backend still gree
   dislikes and breaks the round-trip) and `Number(price)` conversion (binary
   float artifacts like `49.990000000000002` sent to the server).
 - **D-P18 — Client messages are literal copies of the backend's**, with
-  uniqueness left to the server's 422 (documented above). Discarded: paraphrased
-  friendlier messages (the mirror rule C14 compares texts; D-9 fixes the price
-  message exactly).
+  uniqueness left to the server's 422 (documented above). The source of truth for
+  the exact texts is the live backend of 001 (`backend/app/models/product.rb`
+  plus its specs), not any prose here: notably `price`/`stock` blank gives
+  `"is not a number"` (not `"can't be blank"`), `name` > 100 gives
+  `"is too long (maximum is 100 characters)"`, and `price` is validated in order
+  numeric → `> 0` → at most 2 decimals (so `-1` yields `"must be greater than
+  0"`). Discarded: paraphrased friendlier messages (the mirror rule C14 compares
+  texts; D-9 fixes the price message exactly).
 - **D-P19 — Confirmations are one small overlay `ConfirmDialog`** (div with
   `role="dialog"`, Escape, focus move, `inert` background), reused for save and
   delete. Discarded: the native `<dialog>`/`showModal` (browser-free extras are
