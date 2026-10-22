@@ -8,11 +8,14 @@ import {
   normalizeSku,
   validateProduct,
   type ProductForm,
-  type ProductFormErrors,
   type TextField,
 } from '../validators/product'
 import { ConfirmDialog } from './ConfirmDialog'
 import { Field } from './Field'
+
+// RF-8: the server's 422 details kept per field as the whole message array —
+// every detail renders under its field (the mirror contributes at most one).
+type ServerErrors = Partial<Record<TextField, string[]>>
 
 interface ProductFormModalProps {
   /** The product being edited; undefined starts the create mode (RF-5). */
@@ -79,13 +82,22 @@ export function ProductFormModal({
   const [values, setValues] = useState<ProductForm>(() => initialValues(product))
   const [confirming, setConfirming] = useState(false)
   const [pending, setPending] = useState(false)
-  const [serverErrors, setServerErrors] = useState<ProductFormErrors>({})
+  const [serverErrors, setServerErrors] = useState<ServerErrors>({})
   const [formError, setFormError] = useState<string | null>(null)
 
-  // RF-6: mirrored validation derived during render (C14/D-12), overridden
-  // per field by the server's 422 details (RF-8) while they apply.
-  const errors = { ...validateProduct(values), ...serverErrors }
-  const isValid = Object.keys(validateProduct(values)).length === 0
+  // RF-6: mirrored validation derived during render (C14/D-12); the server's
+  // 422 messages (every one of them) override it per field while they apply.
+  const mirrorErrors = validateProduct(values)
+  const isValid = Object.keys(mirrorErrors).length === 0
+
+  // RF-8: the whole 422 array for a field, or the mirrored message as a
+  // single-element array; [] means the field is valid.
+  function messagesFor(field: TextField): string[] {
+    const server = serverErrors[field]
+    if (server !== undefined) return server
+    const mirror = mirrorErrors[field]
+    return mirror === undefined ? [] : [mirror]
+  }
 
   // RF-12 keyboard operability: Escape closes the form without sending
   // anything — but only while the save confirmation is not the active
@@ -121,19 +133,20 @@ export function ProductFormModal({
     setConfirming(true)
   }
 
-  // RF-8: details keyed by a known field render under it; any other key
-  // (e.g. `base`) becomes a form-level message.
+  // RF-8: details keyed by a known field render under it — every message of
+  // the array, not just the first; any other key (e.g. `base`) becomes a
+  // form-level message. `is invalid` only when a details array is empty.
   function applyServerErrors(details: Record<string, string[]> | undefined): void {
     if (details === undefined) {
       setFormError('The product could not be saved.')
       return
     }
-    const fieldErrors: ProductFormErrors = {}
+    const fieldErrors: ServerErrors = {}
     const unknown: string[] = []
     for (const [key, messages] of Object.entries(details)) {
-      const message = messages[0] ?? 'is invalid'
-      if (isTextField(key)) fieldErrors[key] = message
-      else unknown.push(message)
+      const rendered = messages.length > 0 ? messages : ['is invalid']
+      if (isTextField(key)) fieldErrors[key] = rendered
+      else unknown.push(...rendered)
     }
     setServerErrors(fieldErrors)
     setFormError(unknown.length > 0 ? unknown.join(' ') : null)
@@ -192,14 +205,14 @@ export function ProductFormModal({
               id="product-name"
               label="Name"
               value={values.name}
-              error={errors.name ?? null}
+              errors={messagesFor('name')}
               onChange={(value) => setField('name', value)}
             />
             <Field
               id="product-description"
               label="Description"
               value={values.description}
-              error={errors.description ?? null}
+              errors={messagesFor('description')}
               onChange={(value) => setField('description', value)}
               multiline
               placeholder="Optional"
@@ -208,7 +221,7 @@ export function ProductFormModal({
               id="product-price"
               label="Price"
               value={values.price}
-              error={errors.price ?? null}
+              errors={messagesFor('price')}
               onChange={(value) => setField('price', value)}
               inputMode="decimal"
               placeholder="0.00"
@@ -217,7 +230,7 @@ export function ProductFormModal({
               id="product-stock"
               label="Stock"
               value={values.stock}
-              error={errors.stock ?? null}
+              errors={messagesFor('stock')}
               onChange={(value) => setField('stock', value)}
               placeholder="0"
             />
@@ -225,7 +238,7 @@ export function ProductFormModal({
               id="product-sku"
               label="SKU"
               value={values.sku}
-              error={errors.sku ?? null}
+              errors={messagesFor('sku')}
               onChange={(value) => setField('sku', value)}
             />
             <div className="flex items-center gap-2">

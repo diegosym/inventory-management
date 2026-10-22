@@ -1,8 +1,9 @@
 // Form modal spec (T4+T5): edit pre-fill, string payload mechanics (D-P17),
 // live mirror validation (RF-5/RF-6, D-12), and the save flow — confirmation
 // before any request (RF-7), pending state, success feedback (RF-4), and the
-// 422/404/other error contracts (RF-8/RF-9/RF-11). `fetch` is stubbed through
-// vi.stubGlobal (D-P22); a fresh Response per call (a body reads once).
+// 422/404/other error contracts (RF-8/RF-9/RF-11) — plus the create path of
+// that same flow (RF-14): POST payload, create-mode 422. `fetch` is stubbed
+// through vi.stubGlobal (D-P22); a fresh Response per call (a body reads once).
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -207,6 +208,31 @@ describe('ProductFormModal (save flow)', () => {
     expect(onNotFound).not.toHaveBeenCalled()
     expect(onError).not.toHaveBeenCalled()
   })
+
+  it('renders every message of a multi-message 422 array under its field, linked for screen readers', async () => {
+    const user = userEvent.setup()
+    const { onSaved } = renderModal(makeProduct())
+    fetchMock.mockImplementation(() =>
+      Promise.reject(
+        new ApiError(422, 'unprocessable_entity', 'The product could not be saved.', {
+          name: ["can't be blank", 'is too short (minimum is 3 characters)'],
+        }),
+      ),
+    )
+
+    await saveAndConfirm(user)
+
+    expect(await screen.findByText("can't be blank")).toBeInTheDocument()
+    expect(screen.getByText('is too short (minimum is 3 characters)')).toBeInTheDocument()
+    const name = screen.getByLabelText('Name')
+    expect(name).toHaveAttribute('aria-invalid', 'true')
+    expect(name).toHaveAttribute('aria-describedby', 'product-name-error')
+    const nameError = document.getElementById('product-name-error')
+    expect(nameError).toHaveTextContent("can't be blank")
+    expect(nameError).toHaveTextContent('is too short (minimum is 3 characters)')
+    expect(name).toHaveValue('Mechanical keyboard')
+    expect(onSaved).not.toHaveBeenCalled()
+  })
 })
 
 describe('App save wiring (success, 404, network failure)', () => {
@@ -278,6 +304,99 @@ describe('App save wiring (success, 404, network failure)', () => {
     ).toBeInTheDocument()
     expect(screen.getByRole('dialog', { name: 'Edit product' })).toBeInTheDocument()
     expect(screen.getByLabelText('Price')).toHaveValue('49.99')
+  })
+})
+
+describe('App create flow (RF-14)', () => {
+  it('confirms first, POSTs the wrapped payload, then notifies, closes, and refreshes', async () => {
+    const user = userEvent.setup()
+    fetchMock.mockImplementation((_input, init) => {
+      if (init?.method === 'POST') {
+        return jsonResponse({ data: makeProduct({ id: 99, name: 'Standing desk' }) })
+      }
+      return jsonResponse({ data: [makeProduct()], meta: makeMeta(1, 1, 1) })
+    })
+
+    render(<App />)
+    const table = await screen.findByRole('table')
+    await within(table).findByText('Mechanical keyboard')
+    await user.click(screen.getByRole('button', { name: 'New product' }))
+
+    expect(screen.getByRole('dialog', { name: 'New product' })).toBeInTheDocument()
+    await user.type(screen.getByLabelText('Name'), 'Standing desk')
+    await user.type(screen.getByLabelText('Description'), 'Height adjustable')
+    await user.type(screen.getByLabelText('Price'), '249.90')
+    await user.type(screen.getByLabelText('Stock'), '12')
+    await user.type(screen.getByLabelText('SKU'), 'desk-01')
+
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    // RF-7: only the confirmation opens here — nothing has been sent yet.
+    expect(screen.getByRole('dialog', { name: 'Confirm save' })).toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+
+    await user.click(
+      within(screen.getByRole('dialog', { name: 'Confirm save' })).getByRole('button', {
+        name: 'Save',
+      }),
+    )
+
+    expect(await screen.findByText('Product saved.')).toBeInTheDocument()
+    expect(screen.queryByRole('dialog', { name: 'New product' })).toBeNull()
+    expect(screen.queryByRole('dialog', { name: 'Confirm save' })).toBeNull()
+    // list GET + POST + refresh GET
+    expect(fetchMock).toHaveBeenCalledTimes(3)
+
+    const [url, init] = fetchMock.mock.calls[1]
+    expect(init?.method).toBe('POST')
+    expect(new URL(String(url)).pathname).toBe('/api/v1/products')
+    const body = JSON.parse(String(init?.body))
+    expect(Object.keys(body)).toEqual(['product'])
+    expect(body.product.name).toBe('Standing desk')
+    expect(body.product.description).toBe('Height adjustable')
+    expect(body.product.price).toBe('249.90')
+    expect(body.product.stock).toBe('12')
+    expect(body.product.sku).toBe('DESK-01')
+    expect(typeof body.product.active).toBe('boolean')
+    expect(body.product.active).toBe(true)
+  })
+
+  it('on a create 422 keeps the form open and renders every message under its field', async () => {
+    const user = userEvent.setup()
+    fetchMock.mockImplementation((_input, init) => {
+      if (init?.method === 'POST') {
+        return Promise.reject(
+          new ApiError(422, 'unprocessable_entity', 'The product could not be saved.', {
+            name: ["can't be blank", 'is too short (minimum is 3 characters)'],
+          }),
+        )
+      }
+      return jsonResponse({ data: [makeProduct()], meta: makeMeta(1, 1, 1) })
+    })
+
+    render(<App />)
+    const table = await screen.findByRole('table')
+    await within(table).findByText('Mechanical keyboard')
+    await user.click(screen.getByRole('button', { name: 'New product' }))
+    await user.type(screen.getByLabelText('Name'), 'Standing desk')
+    await user.type(screen.getByLabelText('Price'), '249.90')
+    await user.type(screen.getByLabelText('Stock'), '12')
+    await user.type(screen.getByLabelText('SKU'), 'desk-01')
+    await saveAndConfirm(user)
+
+    expect(await screen.findByText("can't be blank")).toBeInTheDocument()
+    expect(screen.getByText('is too short (minimum is 3 characters)')).toBeInTheDocument()
+    const name = screen.getByLabelText('Name')
+    expect(name).toHaveValue('Standing desk')
+    expect(name).toHaveAttribute('aria-invalid', 'true')
+    expect(name).toHaveAttribute('aria-describedby', 'product-name-error')
+    const nameError = document.getElementById('product-name-error')
+    expect(nameError).toHaveTextContent("can't be blank")
+    expect(nameError).toHaveTextContent('is too short (minimum is 3 characters)')
+    // The form stays open with no success feedback and no refresh (GET + POST).
+    expect(screen.getByRole('dialog', { name: 'New product' })).toBeInTheDocument()
+    expect(screen.queryByText('Product saved.')).toBeNull()
+    expect(fetchMock).toHaveBeenCalledTimes(2)
   })
 })
 

@@ -4,22 +4,22 @@ interface FieldProps {
   id: string
   label: string
   value: string
-  /** Mirror message under the control, or null when the field is valid. */
-  error: string | null
+  /** Messages under the control ([] when valid); RF-8 renders every 422 detail. */
+  errors: string[]
   onChange: (value: string) => void
   inputMode?: 'decimal'
   placeholder?: string
   multiline?: boolean
 }
 
-// Label + control + error with RF-12's a11y wiring: a htmlFor/id pair, the
-// aria-invalid flag while invalid, and the message associated through
-// aria-describedby.
+// Label + control + errors with RF-12's a11y wiring: a htmlFor/id pair, the
+// aria-invalid flag while invalid, and every message associated through one
+// aria-describedby container (RF-8 renders the whole 422 array under the field).
 export function Field({
   id,
   label,
   value,
-  error,
+  errors,
   onChange,
   inputMode,
   placeholder,
@@ -35,7 +35,7 @@ export function Field({
   }
 
   const errorAttributes =
-    error === null ? {} : { 'aria-invalid': true, 'aria-describedby': errorId }
+    errors.length === 0 ? {} : { 'aria-invalid': true, 'aria-describedby': errorId }
 
   return (
     <div className="space-y-1">
@@ -64,10 +64,14 @@ export function Field({
           className={className}
         />
       )}
-      {error === null ? null : (
-        <p id={errorId} className="text-sm text-danger">
-          {error}
-        </p>
+      {errors.length === 0 ? null : (
+        <div id={errorId} className="space-y-1">
+          {errors.map((message) => (
+            <p key={message} className="text-sm text-danger">
+              {message}
+            </p>
+          ))}
+        </div>
       )}
     </div>
   )
