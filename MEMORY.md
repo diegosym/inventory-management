@@ -41,7 +41,7 @@ application code yet.**
 
 | Spec | Scope | Status |
 |---|---|---|
-| `001-backend-api` | Product model, validations, 5 endpoints, pagination/search/filter, seeds, RSpec | pending |
+| `001-backend-api` | Product model, validations, 5 endpoints, pagination/search/filter, seeds, RSpec | approved — implementing on `feature/001-backend-api` |
 | `002-frontend-ui` | List, form, delete + confirmation, loading/error/empty states, responsive, Tailwind | pending |
 | `003-ci` | GitHub Actions: RSpec + frontend tests (if present) + build | pending (bonus) |
 | `004-data-integrity` | Soft delete + change audit | pending (bonus) |
@@ -108,6 +108,16 @@ Environment notes:
   authority, and uniqueness is backed by a unique index in PostgreSQL. Normalization
   example: `abc-123` → `ABC-123`. Valid: `ABC123`, `ABC-123`, `A-1`. Invalid:
   `ABC 123`, `abc@123`, `ÁBC123`.
+- **D-7 (spec 001, approved with the plan):** API contract details that spec 002 must
+  mirror — error shape `{ "error": { code, message, details } }` (`details` only on
+  422, keyed by field); listing/search params `q` (+ `page`, `active`), success
+  envelope `{ data, meta: { current_page, total_count, total_pages } }`; `price`
+  serialized as a decimal string (`"49.99"`); compose ships `db` + `backend` in 001,
+  with the `frontend` service added in 002; gems: `pg`, `rack-cors`, `rspec-rails`,
+  `factory_bot_rails` (no Kaminari/Pagy/Faker — C6).
+- **D-8 (branch workflow):** each spec is implemented on its own branch
+  `feature/<spec-name>` (first: `feature/001-backend-api`); when the spec is fully
+  implemented and validated, the branch goes to `main` via a pull request.
 
 ## Open decisions (OPEN DECISION)
 
