@@ -62,8 +62,9 @@ async function openDeleteDialog(
   user: ReturnType<typeof userEvent.setup>,
 ): Promise<HTMLElement> {
   render(<App />)
-  await screen.findByText('Mechanical keyboard')
-  await user.click(screen.getByRole(ROW_BUTTON, { name: ROW_NAME }))
+  const table = await screen.findByRole('table')
+  await within(table).findByText('Mechanical keyboard')
+  await user.click(within(table).getByRole(ROW_BUTTON, { name: ROW_NAME }))
   return screen.getByRole('dialog', { name: 'Confirm delete' })
 }
 
@@ -105,7 +106,7 @@ describe('delete flow', () => {
     expect(init?.method).toBe('DELETE')
     // Row action and confirm action are disabled while pending (C15).
     expect(
-      screen.getByRole(ROW_BUTTON, { name: ROW_NAME }),
+      within(screen.getByRole('table')).getByRole(ROW_BUTTON, { name: ROW_NAME }),
     ).toBeDisabled()
     expect(
       within(screen.getByRole('dialog', { name: 'Confirm delete' })).getByRole('button', {
@@ -155,7 +156,9 @@ describe('delete flow', () => {
     expect(await screen.findByText('Could not delete the product.')).toBeInTheDocument()
     // Dialog stays open for a retry, no refresh: the list is untouched.
     expect(screen.getByRole('dialog', { name: 'Confirm delete' })).toBeInTheDocument()
-    expect(screen.getByText('Mechanical keyboard')).toBeInTheDocument()
+    expect(
+      within(screen.getByRole('table')).getByText('Mechanical keyboard'),
+    ).toBeInTheDocument()
     expect(fetchMock).toHaveBeenCalledTimes(2)
   })
 })

@@ -2,7 +2,7 @@
 // ProductList, with `fetch` stubbed through vi.stubGlobal (D-P22). Every
 // page/q/active change must produce a server request (C11, no client-side
 // filtering), so the request URL is part of the asserted contract.
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -84,7 +84,10 @@ describe('ProductList (listing flow)', () => {
 
     await user.click(screen.getByRole('button', { name: 'Retry' }))
 
-    expect(await screen.findByText('Product 1')).toBeInTheDocument()
+    // Row content lives in both responsive variants; scope to the table
+    // (md+) — the card variant has its own assertions in the a11y spec.
+    const table = await screen.findByRole('table')
+    expect(await within(table).findByText('Product 1')).toBeInTheDocument()
     expect(fetchMock).toHaveBeenCalledTimes(2)
   })
 

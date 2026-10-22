@@ -1,5 +1,5 @@
 import type { FormEvent } from 'react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { createProduct, updateProduct } from '../api/products'
 import { ApiError } from '../types/api'
@@ -86,6 +86,17 @@ export function ProductFormModal({
   // per field by the server's 422 details (RF-8) while they apply.
   const errors = { ...validateProduct(values), ...serverErrors }
   const isValid = Object.keys(validateProduct(values)).length === 0
+
+  // RF-12 keyboard operability: Escape closes the form without sending
+  // anything — but only while the save confirmation is not the active
+  // dialog (its own Escape must close just that confirmation first).
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent): void {
+      if (event.key === 'Escape' && !confirming) onCancel()
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [onCancel, confirming])
 
   function setField(field: TextField, value: string): void {
     const next =

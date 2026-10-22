@@ -1,5 +1,7 @@
 import type { ProductsStatus } from '../hooks/useProducts'
 import type { ListingMeta, Product } from '../types/api'
+import { ProductCard } from './ProductCard'
+import { ProductRow } from './ProductRow'
 import { EmptyState, ErrorState, LoadingState } from './states'
 
 interface ProductListProps {
@@ -77,49 +79,44 @@ export function ProductList({
         <EmptyState filtered={filtered} />
       ) : (
         <>
-          <table className="w-full border-collapse text-left text-sm">
-            <thead>
-              <tr className="border-b border-gray-300 text-gray-600">
-                <th className="py-2 pr-4 font-semibold">Name</th>
-                <th className="py-2 pr-4 font-semibold">SKU</th>
-                <th className="py-2 pr-4 font-semibold">Price</th>
-                <th className="py-2 pr-4 font-semibold">Stock</th>
-                <th className="py-2 pr-4 font-semibold">Active</th>
-                <th className="py-2 pr-4 font-semibold">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {products.map((product) => (
-                <tr key={product.id} className="border-b border-gray-200">
-                  <td className="py-2 pr-4">{product.name}</td>
-                  <td className="py-2 pr-4">{product.sku}</td>
-                  <td className="py-2 pr-4">{product.price}</td>
-                  <td className="py-2 pr-4">{product.stock}</td>
-                  <td className="py-2 pr-4">{product.active ? 'Yes' : 'No'}</td>
-                  <td className="py-2 pr-4">
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={() => onEdit(product)}
-                        className="rounded-md border border-gray-300 px-2 py-1"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        aria-label={`Delete ${product.name}`}
-                        disabled={deletingId === product.id}
-                        onClick={() => onDelete(product)}
-                        className="rounded-md border border-gray-300 px-2 py-1 disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </td>
+          {/* md+ table (D-P21): pure CSS show/hide — hidden below 768px. */}
+          <div className="hidden md:block">
+            <table className="w-full border-collapse text-left text-sm">
+              <thead>
+                <tr className="border-b border-gray-300 text-gray-600">
+                  <th className="py-2 pr-4 font-semibold">Name</th>
+                  <th className="py-2 pr-4 font-semibold">SKU</th>
+                  <th className="py-2 pr-4 font-semibold">Price</th>
+                  <th className="py-2 pr-4 font-semibold">Stock</th>
+                  <th className="py-2 pr-4 font-semibold">Active</th>
+                  <th className="py-2 pr-4 font-semibold">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {products.map((product) => (
+                  <ProductRow
+                    key={product.id}
+                    product={product}
+                    deletingId={deletingId}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {/* <md cards (D-P21): pure CSS show/hide — hidden from 768px up. */}
+          <ul className="space-y-3 md:hidden">
+            {products.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                deletingId={deletingId}
+                onEdit={onEdit}
+                onDelete={onDelete}
+              />
+            ))}
+          </ul>
 
           <nav
             aria-label="Pagination"

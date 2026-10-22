@@ -135,7 +135,7 @@ Rules:
     the delete-flow spec and `docker compose exec frontend npm run build` is
     green — as one task-specific commit.
 
-- [ ] **T7. Responsive layout and accessibility pass.** Split presentation
+- [x] **T7. Responsive layout and accessibility pass.** Split presentation
   into `ProductRow` (md+ table) and `ProductCard` (<md stacked cards) with
   pure-CSS show/hide (D-P21); toolbar and pagination identical at every
   size; verify every input is label-associated, every field error is

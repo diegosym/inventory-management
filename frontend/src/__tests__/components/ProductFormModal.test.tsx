@@ -220,8 +220,9 @@ describe('App save wiring (success, 404, network failure)', () => {
     })
 
     render(<App />)
-    await screen.findByText('Mechanical keyboard')
-    await user.click(screen.getByRole('button', { name: 'Edit' }))
+    const table = await screen.findByRole('table')
+    await within(table).findByText('Mechanical keyboard')
+    await user.click(within(table).getByRole('button', { name: 'Edit' }))
     // Background inert while the form modal is open (D-P19).
     expect(
       screen.getByRole('button', { name: 'New product' }).closest('[inert]'),
@@ -245,8 +246,9 @@ describe('App save wiring (success, 404, network failure)', () => {
     })
 
     render(<App />)
-    await screen.findByText('Mechanical keyboard')
-    await user.click(screen.getByRole('button', { name: 'Edit' }))
+    const table = await screen.findByRole('table')
+    await within(table).findByText('Mechanical keyboard')
+    await user.click(within(table).getByRole('button', { name: 'Edit' }))
     await saveAndConfirm(user)
 
     expect(
@@ -266,8 +268,9 @@ describe('App save wiring (success, 404, network failure)', () => {
     })
 
     render(<App />)
-    await screen.findByText('Mechanical keyboard')
-    await user.click(screen.getByRole('button', { name: 'Edit' }))
+    const table = await screen.findByRole('table')
+    await within(table).findByText('Mechanical keyboard')
+    await user.click(within(table).getByRole('button', { name: 'Edit' }))
     await saveAndConfirm(user)
 
     expect(
@@ -275,5 +278,29 @@ describe('App save wiring (success, 404, network failure)', () => {
     ).toBeInTheDocument()
     expect(screen.getByRole('dialog', { name: 'Edit product' })).toBeInTheDocument()
     expect(screen.getByLabelText('Price')).toHaveValue('49.99')
+  })
+})
+
+describe('App modal wiring', () => {
+  it('opens the modal from the list: edit pre-fills, New product starts empty', async () => {
+    const user = userEvent.setup()
+    fetchMock.mockImplementation(() =>
+      jsonResponse({ data: [makeProduct()], meta: makeMeta(1, 1, 1) }),
+    )
+
+    render(<App />)
+    const table = await screen.findByRole('table')
+    await within(table).findByText('Mechanical keyboard')
+
+    await user.click(within(table).getByRole('button', { name: 'Edit' }))
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(screen.getByLabelText('Price')).toHaveValue('49.99')
+
+    await user.click(screen.getByRole('button', { name: 'Cancel' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
+
+    await user.click(screen.getByRole('button', { name: 'New product' }))
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(screen.getByLabelText('Name')).toHaveValue('')
   })
 })
