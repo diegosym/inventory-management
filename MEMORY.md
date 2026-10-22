@@ -9,16 +9,26 @@ lessons, or development commands); skip routine passes with nothing new.
 ## Project status
 
 **Inventory Management** — product CRUD challenge (Rails API + React/TS).
-**Backend implemented and validated (spec 001); spec 002 (frontend) approved,
-planning.**
+**Backend implemented and validated (spec 001); spec 002 (frontend) implementing:
+T1–T6 done and committed on `feature/002-frontend-ui`; T7 interrupted mid-task
+with uncommitted changes.**
 
 - **Constitution established:** `docs/constitution.md` is official and approved —
   C1–C17, no amendments pending. No ADRs in this project: decisions live here (C4).
 - Foundation in place: `AGENTS.md`, `MEMORY.md`, `specs/README.md`, `.opencode/`
   (9 `/sdd-*` commands, 4 agents, 2 skills), `docs/Reto técnico.pdf` (source of
   truth, C2), `.gitignore`.
-- **Next:** implement 002 tasks T1→T9 on `feature/002-frontend-ui` (React skill
-  `.opencode/skills/vercel-react-best-practices/` guides the code) → validate → PR.
+- **Next (session interrupted 2026-10-22):** resume spec 002 **T7** (responsive
+  layout + accessibility pass) on `feature/002-frontend-ui`. Reviewed verdict: the
+  T7 WIP (uncommitted) is **keep it** — all T7 deliverables exist (`ProductRow`,
+  `ProductCard`, CSS-only split, Escape handling in the form modal, 8-test
+  `accessibility.test.tsx`) and the suite is green (54/54), but `npm run build`
+  **fails on 2× TS6133 unused-variable errors** (`accessibility.test.tsx:59`
+  unused `user` in `renderList`; `ProductCard.tsx:1` unused `Product` type
+  import). To finish T7: fix those two, re-run test + build, and land everything
+  as **one task-specific commit** (C17). Then T8 (README) → T9 (DoD gate) →
+  `/sdd-validate` → PR. React skill `.opencode/skills/vercel-react-best-practices/`
+  guides the code (NFR-3). Note: 12 commits on this branch are not pushed to origin.
 
 ## Key definitions (what is settled)
 
@@ -44,7 +54,7 @@ planning.**
 | Spec | Scope | Status |
 |---|---|---|
 | `001-backend-api` | Product model, validations, 5 endpoints, pagination/search/filter, seeds, RSpec | implemented + validated (PR) |
-| `002-frontend-ui` | List, form (modal), delete + confirmation, loading/error/empty states, responsive, Tailwind, README, frontend tests | implementing (tasks T1–T9) |
+| `002-frontend-ui` | List, form (modal), delete + confirmation, loading/error/empty states, responsive, Tailwind, README, frontend tests | implementing (T1–T6 committed; T7 WIP uncommitted; T8–T9 pending) |
 | `003-ci` | GitHub Actions: RSpec + frontend tests (if present) + build | pending (bonus) |
 | `004-data-integrity` | Soft delete + change audit | pending (bonus) |
 | `005-openapi` | API documentation | pending (bonus) |
