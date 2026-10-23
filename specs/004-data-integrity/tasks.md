@@ -130,7 +130,7 @@ Rules:
     actor `"system"`) and the full `docker compose exec backend bundle exec
     rspec` is green — as one task-specific commit.
 
-- [ ] **T6. README: soft delete and audit documentation (RF-10).** Update the
+- [x] **T6. README: soft delete and audit documentation (RF-10).** Update the
   `DELETE` row note in the endpoint table (soft-delete semantics: row remains,
   invisible everywhere, 204 unchanged) and add a short **"Integridad de
   datos"** subsection: what the audit records (id, action, timestamp, actor

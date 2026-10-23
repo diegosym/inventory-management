@@ -129,7 +129,7 @@ Las respuestas de éxito usan envelope `{ "data": … }`; el listado añade
 | `GET /api/v1/products/:id` | 200 `{ data: { … } }` | — (id inexistente o no numérico → 404) |
 | `POST /api/v1/products` | 201 `{ data: { … } }` | `{ "product": { name, description, price, stock, sku, active } }` |
 | `PUT /api/v1/products/:id` | 200 `{ data: { … } }` | ídem (reemplazo completo; `active` omitido conserva su valor) |
-| `DELETE /api/v1/products/:id` | 204 sin cuerpo | — |
+| `DELETE /api/v1/products/:id` | 204 sin cuerpo — **borrado lógico** (spec 004): la fila permanece con `deleted_at` y queda invisible en todos los endpoints (id eliminado → 404) | — |
 
 - `meta` = `{ current_page, total_count, total_pages }`; 10 productos por
   página, orden `created_at DESC, id DESC`; una página fuera de rango responde
@@ -142,6 +142,24 @@ Las respuestas de éxito usan envelope `{ "data": … }`; el listado añade
   `internal_error` ("Internal server error", sin filtrar detalles internos).
   Los parámetros de listado malformados también responden 422 con `details`
   por parámetro.
+
+## Integridad de datos (spec 004)
+
+Cada cambio persistido (create, update o soft delete) escribe, **en la misma
+transacción**, una entrada en la tabla interna `product_audits` con: id del
+producto, acción (`create`/`update`/`delete`), timestamp y actor `"system"` —
+fijo para todo cambio, API y seeds (D-15 cerró OD-2; no hay autenticación).
+Contenido por acción:
+
+- `create` — los valores de negocio del producto creado.
+- `update` — solo los campos que cambiaron, con valor anterior y nuevo (un
+  payload equivalente o idéntico no genera entrada).
+- `delete` — solo id, acción, timestamp y actor: **sin snapshot de campos**.
+
+Una petición rechazada (422) no deja ni cambio ni entrada, y los GET no
+registran nada. La auditoría es **solo interna** (RF-8): no tiene endpoints ni
+aparece en ninguna respuesta de la API; se verifica con la suite RSpec y con
+la consola Rails (`docker compose exec backend bin/rails console`).
 
 ## Decisiones Técnicas
 
@@ -196,15 +214,19 @@ Roadmap de bonus (`specs/README.md`), pendientes y entregables por separado:
   RSpec, la suite frontend y el build en cada push a `main` y en cada PR, y el
   check `CI` es requerido para mergear en `main` (ver «Integración continua
   (CI)»).
-- **004 — Integridad de datos:** soft delete + auditoría de cambios.
+- **004 — Integridad de datos:** entregado — `DELETE` como borrado lógico
+  (la fila permanece, invisible en todos los endpoints) y auditoría de cambios
+  en la tabla interna `product_audits` con actor `"system"` (ver «Integridad
+  de datos»).
 - **005 — OpenAPI:** documentación automática de la API.
 - **006 — Deploy:** despliegue funcional (el proveedor es una decisión abierta,
   OD-3).
 
 Limitaciones conocidas (alcance actual, no bugs):
 
-- **Sin autenticación** — fuera de alcance por el enunciado; la auditoría de
-  "quién" queda como decisión abierta (OD-2, spec 004).
+- **Sin autenticación** — fuera de alcance por el enunciado; la auditoría
+  registra el actor fijo `"system"` (OD-2 cerrada por D-15, spec 004), listo
+  para un actor real si algún día llega la auth.
 - **Paginación fija de 10 por página** — sin parámetro `per_page`.
 - **El frontend se sirve con el dev server de Vite** (HMR incluido); no hay
   build de producción ni servidor estático — eso llega con el spec 006.
