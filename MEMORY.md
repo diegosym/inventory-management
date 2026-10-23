@@ -53,7 +53,7 @@ validated, and merged to `main`.**
 | `002-frontend-ui` | List, form (modal), delete + confirmation, loading/error/empty states, responsive, Tailwind, README, frontend tests | **done — merged to `main` (PR #2, `f351a0a`)**: validated + browser smoke 9/9 (suite 57/57, backend 90/0) |
 | `003-ci` | GitHub Actions: RSpec + frontend tests (if present) + build | **done — merged to `main` (PR #3, `c44e83b`)**: validated `VEREDICTO: APROBADO` (T1–T5: live runs incl. run-all drill, required check `CI` active, push-trigger run green) |
 | `004-data-integrity` | Soft delete + change audit | **done — merged to `main` (PR #5, `372f995`)**: validated `VEREDICTO: APROBADO` (124/0; 1 authorized 001 adaptation; frontend untouched; push-trigger CI green) |
-| `005-openapi` | API documentation | pending (bonus) |
+| `005-openapi` | API documentation | spec + plan **approved** (D-17, D-18: swagger-ui vendado) — drafting tasks |
 | `006-deploy` | Live deployment | pending (bonus) |
 
 A spec starts only when the previous one is `VEREDICTO: APROBADO`.
@@ -194,6 +194,32 @@ Environment notes:
   representation deferred to `plan.md`); (d) only spec-001 tests encoding the
   superseded permanent-delete semantics may be adapted; every other test of
   001/002/003 must stay green untouched (C7).
+- **D-17 (spec 005, user decisions approved with the spec):** (a) the OpenAPI
+  document lives in the **repo and is served raw by the API** at a fixed URL
+  (RF-4); (b) an **interactive docs UI is in scope** at a fixed backend-origin
+  path (plan proposes; `/docs` referenced) rendering the served document — single
+  source of truth — with real try-it-out requests, **self-contained: assets served
+  by the application, no CDN/external network in the browser at runtime** (RF-5);
+  (c) the document **includes a 500 example** (generic C10 shape) and documents a
+  syntactically invalid JSON body **as implemented — 500 `internal_error`**
+  (observed live); RF-6 replay covers reproducible examples only, with the generic
+  500 verified by simulation (001 RF-16 precedent) and the served document
+  byte-identical to the committed file. **Supersession (C3):** 001 RF-3 and 004
+  RF-5 ("five routes") superseded one point each — route surface grows by the doc
+  route (RF-4) + UI route (RF-5). **Gate (C6):** the UI mechanism and ANY new
+  dependency or asset bundle require a MEMORY decision **before code** — plan
+  proposes, coordinator records.
+- **D-18 (spec 005, C6 gate approved with the plan):** **vendor the
+  `swagger-ui-dist` bundle — 3 static assets, pinned version, committed under
+  `backend/public/docs/swagger-ui/`** — for the self-contained interactive docs
+  UI (RF-5). Why: real try-it-out rendering with **zero changes to
+  Gemfile/package.json**, no network at build or runtime (no CDN), frontend
+  untouched; obtained once from the official npm tarball via `docker run …
+  node:22`. Discarded: gems `swagger-ui`/`rswag` (dependency + coupling),
+  `swagger-ui-react` (wrong origin), CDN (user veto, D-17b), hand-rolled
+  renderer (fallback only). Rest of plan: D-P40…D-P48 (OpenAPI 3.0.3 YAML at
+  `backend/public/docs/openapi.yaml`, static serving, anti-drift spec with stdlib
+  YAML + integration replay, UI smoke assigned to the coordinator — D-13).
 
 ## Open decisions (OPEN DECISION)
 
