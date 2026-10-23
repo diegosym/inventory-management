@@ -72,7 +72,7 @@ Rules:
     truthfulness against the code is T3/T4's job; here it is well-formedness and
     serving.
 
-- [ ] **T2. The UI page and the vendored Swagger UI assets: `/docs` (D-P42).**
+- [x] **T2. The UI page and the vendored Swagger UI assets: `/docs` (D-P42).**
   Fetch **once** the official `swagger-ui-dist` npm tarball at a **pinned
   version** through the documented
   `docker run --rm -v "$PWD":/w -w /w node:22 …` pattern (host node is
