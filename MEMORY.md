@@ -54,7 +54,7 @@ validated, and merged to `main`.**
 | `001-backend-api` | Product model, validations, 5 endpoints, pagination/search/filter, seeds, RSpec | **done — merged to `main` (PR #1)** |
 | `002-frontend-ui` | List, form (modal), delete + confirmation, loading/error/empty states, responsive, Tailwind, README, frontend tests | **done — merged to `main` (PR #2, `f351a0a`)**: validated + browser smoke 9/9 (suite 57/57, backend 90/0) |
 | `003-ci` | GitHub Actions: RSpec + frontend tests (if present) + build | **done — merged to `main` (PR #3, `c44e83b`)**: validated `VEREDICTO: APROBADO` (T1–T5: live runs incl. run-all drill, required check `CI` active, push-trigger run green) |
-| `004-data-integrity` | Soft delete + change audit | pending (bonus) |
+| `004-data-integrity` | Soft delete + change audit | spec **approved** (D-15 closes OD-2, D-16) — drafting plan |
 | `005-openapi` | API documentation | pending (bonus) |
 | `006-deploy` | Live deployment | pending (bonus) |
 
@@ -182,13 +182,26 @@ Environment notes:
   untouched). The only delta in CI: `exec`/`run` carry `-T` because runners have no
   TTY (plan D-P29) — same images, same compose, same suites. Run-all on failure is
   a spec requirement (RF-3, mechanism D-P26).
+- **D-15 (closes OD-2; user decision, spec 004):** the audit actor is the constant
+  `"system"` for every change — API-driven and server-side (seeds) alike: with no
+  authentication (C2) the audit targets the action, the date, and what changed, not
+  a faked identity (C5); the `actor` field stays ready to carry a real actor if
+  authentication ever arrives. Recorded in `specs/004-data-integrity/spec.md` RF-7.
+- **D-16 (user decisions at spec 004 QA):** (a) re-running `db:seed` **resurrects
+  a soft-deleted demo product with a new id** — 001 RF-15's idempotence is scoped
+  to non-deleted products (004 supersedes 001 in two points, C3); (b) a **delete
+  audit entry carries only product id, action, timestamp, and actor** — no field
+  values or snapshot (C5); (c) "changed" for updates is judged on **persisted
+  values** (equivalent payloads record no entry — exact before/after
+  representation deferred to `plan.md`); (d) only spec-001 tests encoding the
+  superseded permanent-delete semantics may be adapted; every other test of
+  001/002/003 must stay green untouched (C7).
 
 ## Open decisions (OPEN DECISION)
 
-- **OD-2.** Audit "who" (spec 004): there is no authentication in this challenge, so
-  the actor must be defined (IP, `X-User` header, or system). Deferred to 004.
 - **OD-3.** Deploy provider (spec 006): Railway vs Render vs Vercel. Deferred to 006.
 - ~~OD-1.~~ **Closed by D-6** (SKU charset: uppercase + digits + hyphens on both sides).
+- ~~OD-2.~~ **Closed by D-15** (audit actor: the constant `"system"`, user decision).
 
 ## Terminology
 
@@ -222,3 +235,7 @@ Environment notes:
   workflow file): the agent fell back to `shell` heredocs with the user's approval.
   Works, but future specs that create files in new top-level dirs should extend the
   allowlist first (user-approved) instead of relying on shell fallback.
+- Rails 8.1 gotcha (verified live in the container during spec 004's planning):
+  `UniquenessValidator#build_relation` starts from `klass.unscoped`, so a
+  `default_scope` does **not** constrain uniqueness validation — scoped uniqueness
+  needs an explicit `conditions:` option (plan D-P34).
