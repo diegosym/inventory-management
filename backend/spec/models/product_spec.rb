@@ -147,7 +147,7 @@ RSpec.describe Product, type: :model do
     it 'normalizes lowercase input before validating: abc-123 -> ABC-123' do
       product = build(:product, sku: 'abc-123')
       expect(product).to be_valid
-      expect(product.sku).to eq('BROKEN-FOR-RUN-ALL-DRILL')
+      expect(product.sku).to eq('ABC-123')
     end
 
     it 'stores the normalized sku' do
