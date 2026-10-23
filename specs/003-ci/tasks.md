@@ -49,7 +49,7 @@ Rules:
     `docker compose run --rm frontend npm test`,
     `docker compose exec frontend npm run build` — as one task-specific commit.
 
-- [ ] **T2. README: the CI section and coherence updates.** New section
+- [x] **T2. README: the CI section and coherence updates.** New section
   **"Integración continua (CI)"** after "Cómo ejecutar los tests" documenting
   which three checks run and on which events (push to `main`, PR targeting
   `main`), the run-all behavior, and the required-check note: the check is named

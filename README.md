@@ -35,6 +35,8 @@ con teclado.
 │       └── __tests__/  # suite Vitest + RTL
 ├── docker-compose.yml  # servicios db, backend y frontend
 ├── .env.example        # plantilla de variables de entorno (sin secretos)
+├── .github/
+│   └── workflows/ci.yml # CI (spec 003): RSpec, Vitest y build en push/PR a main
 ├── docs/               # constitución (C1–C17) y enunciado original
 ├── specs/              # artefactos SDD: 001-backend-api, 002-frontend-ui, …
 └── MEMORY.md           # decisiones, comandos y contexto estable del proyecto
@@ -87,6 +89,32 @@ docker compose exec frontend npm run build
 
 Los comandos exactos de verificación viven en `MEMORY.md → Development
 commands`; todo se ejecuta vía compose, nunca Node ni Ruby en el host.
+
+## Integración continua (CI)
+
+El workflow `.github/workflows/ci.yml` (spec 003) corre en **cada push a `main`
+y en cada pull request hacia `main`** (sin filtrado por rutas). Primero levanta
+la pila y prepara la base de datos (`docker compose up -d --build` y
+`docker compose exec -T backend bin/rails db:prepare db:seed`); después ejecuta
+las tres verificaciones documentadas con los mismos comandos de
+`MEMORY.md → Development commands`, solo que con `-T` porque los runners no
+tienen TTY (D-14):
+
+1. **Suite del backend (RSpec):**
+   `docker compose exec -T backend bundle exec rspec`
+2. **Suite del frontend (Vitest + React Testing Library):**
+   `docker compose run -T --rm frontend npm test`
+3. **Build de producción del frontend (`tsc -b` + Vite):**
+   `docker compose exec -T frontend npm run build`
+
+**Run-all:** si una verificación falla, las demás se ejecutan igual (no se
+cancelan entre sí) y el run queda en rojo, nombrando la verificación fallida.
+
+**Check requerido para mergear:** el check se llama `CI`. Hacerlo bloqueante es
+un ajuste **manual y único** del propietario del repositorio — *Settings →
+Branches → protección de `main` → Require a pull request before merging* y
+*Require status checks to pass* → añadir `CI`. Comportamiento resultante: un PR
+con `CI` fallido o ausente no puede mergear en `main`; con `CI` verde, sí puede.
 
 ## API (resumen)
 
@@ -163,7 +191,10 @@ Fuente completa: `MEMORY.md` (D-1…D-12) y los planes de `specs/001` y
 
 Roadmap de bonus (`specs/README.md`), pendientes y entregables por separado:
 
-- **003 — CI:** GitHub Actions ejecutando RSpec, la suite frontend y el build.
+- **003 — CI:** entregado en el repo — el workflow `.github/workflows/ci.yml`
+  ejecuta RSpec, la suite frontend y el build en cada push a `main` y en cada
+  PR (ver «Integración continua (CI)»); pendiente la activación manual del
+  check requerido `CI`.
 - **004 — Integridad de datos:** soft delete + auditoría de cambios.
 - **005 — OpenAPI:** documentación automática de la API.
 - **006 — Deploy:** despliegue funcional (el proveedor es una decisión abierta,
