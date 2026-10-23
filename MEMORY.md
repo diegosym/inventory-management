@@ -18,13 +18,14 @@ validated, and merged to `main`.**
   (9 `/sdd-*` commands, 4 agents, 3 skills: `sdd`, `ruby-rails`,
   `vercel-react-best-practices`), `.agents/skills/agent-browser` (D-13),
   `docs/Reto técnico.pdf` (source of truth, C2), `.gitignore`.
-- **Next (session 2026-10-22):** **spec 002 MERGED to `main`** (PR #2,
-  `f351a0a`) — the core scope (specs 001–002) is complete: validated
-  (`VEREDICTO: APROBADO`), T9 browser smoke 9/9 (flows + responsive via
-  `agent-browser set viewport`), docs closed, lessons recorded (D-9 precision,
-  D-13 tooling). **Nothing in flight.** Next spec is `003-ci` (first bonus,
-  simplest-first D-4) — it starts only when the user asks for it (`/sdd-spec`).
-  React skill per NFR-3 throughout.
+- **Next (session 2026-10-22):** spec **003-ci validated — `VEREDICTO: APROBADO`**
+  (T1–T5; PR #3 green, live runs: green `39888209048`, run-all drill red
+  `39888544635` with the other two green, revert green; required check `CI`
+  **active** on `main` with `enforce_admins` — verified `BLOCKED` (red) vs `CLEAN`
+  (green)). Docs closed in `7b2b4e7`. **Remaining: push the close-out commit and
+  merge PR #3** (user's gate) — after the merge, the `push`-to-`main` trigger gets
+  its first real run. Then spec `004-data-integrity` per roadmap (D-4).
+  React skill per NFR-3 throughout; agent-browser skill for viewport smoke.
 
 ## Key definitions (what is settled)
 
@@ -51,7 +52,7 @@ validated, and merged to `main`.**
 |---|---|---|
 | `001-backend-api` | Product model, validations, 5 endpoints, pagination/search/filter, seeds, RSpec | **done — merged to `main` (PR #1)** |
 | `002-frontend-ui` | List, form (modal), delete + confirmation, loading/error/empty states, responsive, Tailwind, README, frontend tests | **done — merged to `main` (PR #2, `f351a0a`)**: validated + browser smoke 9/9 (suite 57/57, backend 90/0) |
-| `003-ci` | GitHub Actions: RSpec + frontend tests (if present) + build | pending (bonus) |
+| `003-ci` | GitHub Actions: RSpec + frontend tests (if present) + build | **done — validated `VEREDICTO: APROBADO`** (T1–T5 incl. live runs, run-all drill, required check active); PR #3 awaiting merge |
 | `004-data-integrity` | Soft delete + change audit | pending (bonus) |
 | `005-openapi` | API documentation | pending (bonus) |
 | `006-deploy` | Live deployment | pending (bonus) |
@@ -173,6 +174,13 @@ Environment notes:
   `skills-lock.json`, committed) with its global CLI + Chrome for Testing under
   `~/.local/node-v24.22.1-darwin-x64` (PATH prepend). It does not touch the app
   stack (C8 unaffected): verification tooling only, used for T9's viewport checks.
+- **D-14 (spec 003, approved with the plan):** CI executes the **same documented
+  `docker compose` commands as local** (RSpec · Vitest · build — local/CI parity,
+  C8; referenced by RF-4) with **non-secret `POSTGRES_*` literals in the workflow's
+  `env:`** (NFR-1/C16; no `.env` on the runner, no GitHub `secrets`, compose `:?`
+  untouched). The only delta in CI: `exec`/`run` carry `-T` because runners have no
+  TTY (plan D-P29) — same images, same compose, same suites. Run-all on failure is
+  a spec requirement (RF-3, mechanism D-P26).
 
 ## Open decisions (OPEN DECISION)
 
@@ -209,3 +217,7 @@ Environment notes:
   CLIs that need Node ≥22 (e.g. the `skills` installer) run inside
   `docker run --rm -v "$PWD":/repo -w /repo node:22 npx -y …` with
   `--agent '*' -y` for non-interactive installs.
+- The implementer's `edit` allowlist lacked `.github/**` (spec 003 created a new
+  workflow file): the agent fell back to `shell` heredocs with the user's approval.
+  Works, but future specs that create files in new top-level dirs should extend the
+  allowlist first (user-approved) instead of relying on shell fallback.
