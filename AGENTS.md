@@ -13,7 +13,9 @@ Entry point and behavior contract for AI coding sessions.
 
 **Inventory Management** — Full Stack challenge: product CRUD with a Rails API
 (PostgreSQL) backend and a React + TypeScript + TailwindCSS frontend, everything
-running in Docker. Constitution drafted, no application code yet.
+running in Docker. **Core delivered: specs `001-backend-api` and `002-frontend-ui`
+are implemented, validated, and merged to `main`; the bonus specs `003`–`006` are
+pending (roadmap order in `specs/README.md`).**
 
 Do not assume tooling, commands, versions, or layout beyond what `MEMORY.md`
 documents.
@@ -39,7 +41,9 @@ documents.
 The `sdd` skill (`.opencode/skills/sdd/SKILL.md`) is the **single source of truth**
 for the SDD flow and templates (spec/plan/tasks, EARS, "Done when:"). All artifacts
 are written in **English**; the user communicates in Spanish. The `ruby-rails` skill
-holds Rails conventions.
+holds Rails conventions; `.opencode/skills/vercel-react-best-practices/` guides
+frontend code (NFR-3 of spec 002); the `agent-browser` skill
+(`.agents/skills/agent-browser/`) drives browser/viewport smoke checks (D-13).
 
 | Command | Runs as | Does |
 |---|---|---|
@@ -86,7 +90,8 @@ order (`specs/README.md`): a spec starts only when the previous one is approved.
 
 ## Scope discipline
 
-Constitution drafted; specs not started. Explicitly out-of-bounds until a spec says
+The core (specs 001–002) is delivered; the bonus specs 003–006 follow the roadmap
+and start only when requested. Explicitly out-of-bounds until a spec says
 otherwise:
 
 - Any architecture change or dependency outside the binding stack (C8)

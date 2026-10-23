@@ -15,8 +15,9 @@ validated, and merged to `main`.**
 - **Constitution established:** `docs/constitution.md` is official and approved —
   C1–C17, no amendments pending. No ADRs in this project: decisions live here (C4).
 - Foundation in place: `AGENTS.md`, `MEMORY.md`, `specs/README.md`, `.opencode/`
-  (9 `/sdd-*` commands, 4 agents, 2 skills), `docs/Reto técnico.pdf` (source of
-  truth, C2), `.gitignore`.
+  (9 `/sdd-*` commands, 4 agents, 3 skills: `sdd`, `ruby-rails`,
+  `vercel-react-best-practices`), `.agents/skills/agent-browser` (D-13),
+  `docs/Reto técnico.pdf` (source of truth, C2), `.gitignore`.
 - **Next (session 2026-10-22):** **spec 002 MERGED to `main`** (PR #2,
   `f351a0a`) — the core scope (specs 001–002) is complete: validated
   (`VEREDICTO: APROBADO`), T9 browser smoke 9/9 (flows + responsive via
@@ -48,7 +49,7 @@ validated, and merged to `main`.**
 
 | Spec | Scope | Status |
 |---|---|---|
-| `001-backend-api` | Product model, validations, 5 endpoints, pagination/search/filter, seeds, RSpec | implemented + validated (PR) |
+| `001-backend-api` | Product model, validations, 5 endpoints, pagination/search/filter, seeds, RSpec | **done — merged to `main` (PR #1)** |
 | `002-frontend-ui` | List, form (modal), delete + confirmation, loading/error/empty states, responsive, Tailwind, README, frontend tests | **done — merged to `main` (PR #2, `f351a0a`)**: validated + browser smoke 9/9 (suite 57/57, backend 90/0) |
 | `003-ci` | GitHub Actions: RSpec + frontend tests (if present) + build | pending (bonus) |
 | `004-data-integrity` | Soft delete + change audit | pending (bonus) |
@@ -65,9 +66,8 @@ recorded here before code.
 
 ## Development commands
 
-Binding verification before claiming a task done. Available **once the compose file
-exists** (created in spec 001 scaffolding); until then there is nothing to run —
-say so instead of inventing commands.
+Binding verification before claiming a task done — all via `docker compose`
+(the compose file exists since spec 001's scaffolding).
 
 ```sh
 # run everything
@@ -97,11 +97,13 @@ docker compose down
 
 Environment notes:
 
-- **First run:** `cp .env.example .env` — compose requires `POSTGRES_PASSWORD` (no
-  secrets committed, C16).
-- Images: `ruby:3.3` (already local), `postgres:16` and `node:22` (to pull).
+- **First run:** `cp .env.example .env` **only if `.env` does not exist yet** —
+  a copy would overwrite `POSTGRES_PASSWORD` and break auth against the existing
+  `db_data` volume (README T8 documents this caveat). No secrets committed (C16).
+- Images (`ruby:3.3`, `postgres:16`, `node:22`) are already local.
 - **Never run `ruby`, `bundle`, `rails`, `node`, or `npm` on the host**: host Ruby is
-  2.6 and host Node is 13 — both unusable. Everything goes through compose.
+  2.6 and host Node is 13 — both unusable. Everything goes through compose (the
+  documented `~/.local` Node installs are tooling-only fallbacks, see D-13/Lessons).
 - Docker Desktop must be running.
 
 ## Decisions
@@ -159,18 +161,18 @@ Environment notes:
   that default and CORS already defaults to it (D-9). The dev-server host/port stays
   in `vite.config.ts` and does not go through env vars. User-approved ruling; no
   plan amendment needed.
-- **D-13 (tooling, 2026-10-22, user-requested):** the **`agent-browser` skill**
-  (vercel-labs/agent-browser) is the project's browser-automation/responsive-smoke
-  tool — installed via the `skills` CLI (`.agents/skills/agent-browser` +
-  `skills-lock.json`, committed) with its global CLI + Chrome for Testing under
-  `~/.local/node-v24.22.1-darwin-x64` (PATH prepend). It does not touch the app
-  stack (C8 unaffected): verification tooling only, used for T9's viewport checks.
 - **D-12 (spec 002, mirror source of truth):** the frontend mirrors the **live
   backend messages of 001** (`backend/app/models/product.rb` + its specs), not the
   prose examples of the plan (erratum found in plan D-P18 during T2 and corrected):
   blank `price`/`stock` → `"is not a number"`, `name` >100 → `"is too long (maximum
   is 100 characters)"`, negative price → `"must be greater than 0"` (validation
   order: numeric → >0 → ≤2 decimals). C14/RF-6 prevail over plan examples.
+- **D-13 (tooling, 2026-10-22, user-requested):** the **`agent-browser` skill**
+  (vercel-labs/agent-browser) is the project's browser-automation/responsive-smoke
+  tool — installed via the `skills` CLI (`.agents/skills/agent-browser` +
+  `skills-lock.json`, committed) with its global CLI + Chrome for Testing under
+  `~/.local/node-v24.22.1-darwin-x64` (PATH prepend). It does not touch the app
+  stack (C8 unaffected): verification tooling only, used for T9's viewport checks.
 
 ## Open decisions (OPEN DECISION)
 
