@@ -114,7 +114,7 @@ Rules:
     `docker compose exec backend bundle exec rspec` is green — as one
     task-specific commit.
 
-- [ ] **T5. Seeds: resurrection semantics documented and tested (red → green on
+- [x] **T5. Seeds: resurrection semantics documented and tested (red → green on
   the seeds suite).** Tests first: add examples to `backend/spec/seeds_spec.rb`
   (the four existing examples stay untouched) — soft-delete a seeded product,
   re-run `Rails.application.load_seed`: the SKU is present again under a
