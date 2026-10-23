@@ -18,15 +18,13 @@ validated, and merged to `main`.**
   (9 `/sdd-*` commands, 4 agents, 3 skills: `sdd`, `ruby-rails`,
   `vercel-react-best-practices`), `.agents/skills/agent-browser` (D-13),
   `docs/Reto técnico.pdf` (source of truth, C2), `.gitignore`.
-- **Next (session 2026-10-22):** spec **003-ci MERGED to `main`** (PR #3,
-  `c44e83b`) — validated `VEREDICTO: APROBADO`; all its evidence is in (green run
-  `39888209048`, run-all drill red with the other two green `39888544635`, revert
-  green, required check `CI` active with `enforce_admins`, red→`BLOCKED` /
-  green→`CLEAN`, and the `push`-to-`main` trigger run `39891045488` **success**).
-  **Nothing in flight.** Next spec is `004-data-integrity` (soft delete + change
-  audit; OD-2 about the audit "who" must be settled there) — starts only when the
-  user asks (D-4 roadmap order). React skill per NFR-3; agent-browser for viewport
-  smoke.
+- **Next (session 2026-10-23):** spec **004-data-integrity validated —
+  `VEREDICTO: APROBADO`** (T1–T6 committed on `feature/004-data-integrity`;
+  RSpec 124/0, Vitest 57/57, build green; console DoD replicated). **Remaining:
+  push + PR (required check `CI` runs there) + merge** — then MEMORY final sync.
+  Reviewer's non-blocking optionals not implemented: a `ProductAudit.count` assert
+  on PUT-of-deleted 404 and a dedicated immutability example. Next spec:
+  `005-openapi` per roadmap (D-4). React skill NFR-3; agent-browser for smoke.
 
 ## Key definitions (what is settled)
 
@@ -54,7 +52,7 @@ validated, and merged to `main`.**
 | `001-backend-api` | Product model, validations, 5 endpoints, pagination/search/filter, seeds, RSpec | **done — merged to `main` (PR #1)** |
 | `002-frontend-ui` | List, form (modal), delete + confirmation, loading/error/empty states, responsive, Tailwind, README, frontend tests | **done — merged to `main` (PR #2, `f351a0a`)**: validated + browser smoke 9/9 (suite 57/57, backend 90/0) |
 | `003-ci` | GitHub Actions: RSpec + frontend tests (if present) + build | **done — merged to `main` (PR #3, `c44e83b`)**: validated `VEREDICTO: APROBADO` (T1–T5: live runs incl. run-all drill, required check `CI` active, push-trigger run green) |
-| `004-data-integrity` | Soft delete + change audit | spec **approved** (D-15 closes OD-2, D-16) — drafting plan |
+| `004-data-integrity` | Soft delete + change audit | **validated `VEREDICTO: APROBADO`** (T1–T6; suite 124/0 — 34 new examples; 1 authorized 001 adaptation; frontend untouched) — PR in flight |
 | `005-openapi` | API documentation | pending (bonus) |
 | `006-deploy` | Live deployment | pending (bonus) |
 
