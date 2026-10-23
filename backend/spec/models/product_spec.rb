@@ -226,4 +226,34 @@ RSpec.describe Product, type: :model do
       expect(product.errors[:active]).to be_present
     end
   end
+
+  # Spec 004 T1 (RF-1, RF-4): a soft-deleted row stays in the table but leaves
+  # the visible set, so its SKU may be reused — only among visible products.
+  describe 'soft delete (spec 004: RF-1, RF-4)' do
+    it 'accepts the sku of a soft-deleted product' do
+      original = create(:product, sku: 'GONE-1')
+      original.soft_delete!
+
+      reuse = build(:product, sku: 'gone-1')
+      expect(reuse).to be_valid
+      expect { reuse.save! }.not_to raise_error
+      expect(Product.unscoped.find(original.id).deleted_at).to be_present
+    end
+
+    it 'still rejects the sku of a visible product' do
+      create(:product, sku: 'LIVE-1')
+      reuse = build(:product, sku: 'live-1')
+      expect(reuse).not_to be_valid
+      expect(reuse.errors[:sku]).to include('has already been taken')
+    end
+
+    it 'soft_delete! sets deleted_at, keeps the row, and drops the visible count' do
+      product = create(:product)
+
+      expect { product.soft_delete! }.to change(Product, :count).by(-1)
+
+      expect(product.deleted_at).to be_present
+      expect(Product.unscoped.find(product.id).deleted_at).to be_present
+    end
+  end
 end

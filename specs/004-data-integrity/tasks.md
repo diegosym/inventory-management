@@ -26,7 +26,7 @@ Rules:
 
 ## Tasks
 
-- [ ] **T1. Soft-delete storage and model rules (red → green on the model suite).**
+- [x] **T1. Soft-delete storage and model rules (red → green on the model suite).**
   Tests first: add the model examples to `backend/spec/models/product_spec.rb`
   (reusing the SKU of a soft-deleted product is valid; reusing a visible product's
   SKU still fails — existing example untouched; `soft_delete!` sets `deleted_at`

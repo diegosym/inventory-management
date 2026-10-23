@@ -1,4 +1,8 @@
 class Product < ApplicationRecord
+  # Spec 004 (D-P32): soft-deleted rows are invisible to every query by
+  # construction; `Product.unscoped` is for tests/console only, never app code.
+  default_scope { where(deleted_at: nil) }
+
   # Model-side normalizations (plan D-P8, C9): SKU uppercased and nil
   # description turned into "" before validating — never in the controller.
   before_validation :normalize_fields
@@ -7,9 +11,12 @@ class Product < ApplicationRecord
   validates :description, length: { maximum: 1000 }
   validates :price, numericality: { greater_than: 0 }
   validates :stock, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
+  # Uniqueness among visible rows only (spec 004 RF-4, D-P34): the `conditions:`
+  # option is mandatory — Rails 8.1's validator builds from `klass.unscoped` and
+  # ignores `default_scope`. Same rule, same message as spec 001 (D-6, C14).
   validates :sku, presence: true,
                   format: { with: /\A[A-Z0-9-]+\z/, allow_blank: true },
-                  uniqueness: true
+                  uniqueness: { conditions: -> { where(deleted_at: nil) } }
   validates :active, inclusion: { in: [true, false] }
 
   # RF-1 edge cases. `active`: ActiveRecord casts non-boolean input ("yes", 1)
@@ -18,6 +25,13 @@ class Product < ApplicationRecord
   # silently at write time, so the raw value is checked too.
   validate :active_must_be_a_boolean
   validate :price_has_at_most_two_decimals
+
+  # Spec 004 (D-P35): mark as deleted without destroying the row — only
+  # `deleted_at` is written, no destroy callbacks (the delete audit entry is
+  # spec 004 T3). Called by the controller's `destroy` action.
+  def soft_delete!
+    update!(deleted_at: Time.current)
+  end
 
   private
 
