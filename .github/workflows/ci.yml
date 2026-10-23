@@ -1,0 +1,39 @@
+# CI for spec 003 (RF-1…RF-4, NFR-1…NFR-3): the three documented verifications —
+# backend RSpec, frontend Vitest, frontend production build — in the project's
+# Docker environment, with the exact `docker compose` commands from
+# `MEMORY.md → Development commands` (D-14 parity), differing only by `-T`
+# (runners have no TTY, D-P29). Non-secret `POSTGRES_*` literals in `env:`
+# satisfy compose's required `POSTGRES_PASSWORD` on a runner with no `.env`
+# (NFR-1/C16, D-P27): no repository secret, no env file written.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  POSTGRES_USER: inventory
+  POSTGRES_DB: inventory_development
+  POSTGRES_PASSWORD: ci-insecure-not-a-secret
+
+jobs:
+  CI:
+    name: CI
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4 # the only marketplace action (C6)
+      - name: Stack up (db + backend + frontend)
+        run: docker compose up -d --build
+      - name: Prepare database
+        run: docker compose exec -T backend bin/rails db:prepare db:seed
+      - name: Backend — RSpec suite
+        run: docker compose exec -T backend bundle exec rspec
+      - name: Frontend — Vitest suite
+        if: ${{ !cancelled() }} # run-all (RF-3, D-P26); a failure keeps the run red
+        run: docker compose run -T --rm frontend npm test
+      - name: Frontend — production build (tsc + vite)
+        if: ${{ !cancelled() }} # run-all (RF-3, D-P26); a failure keeps the run red
+        run: docker compose exec -T frontend npm run build

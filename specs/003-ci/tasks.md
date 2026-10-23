@@ -27,7 +27,7 @@ Rules:
 
 ## Tasks
 
-- [ ] **T1. The CI workflow: `.github/workflows/ci.yml`.** Per the plan: events
+- [x] **T1. The CI workflow: `.github/workflows/ci.yml`.** Per the plan: events
   `push` and `pull_request` targeting `main`, no `paths:` filter; one job with id
   and name **`CI`** on `ubuntu-latest` with `timeout-minutes: 20`; workflow-level
   `env:` block with literal non-secret `POSTGRES_USER`, `POSTGRES_DB`,
