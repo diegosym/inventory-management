@@ -18,14 +18,12 @@ validated, and merged to `main`.**
   (9 `/sdd-*` commands, 4 agents, 3 skills: `sdd`, `ruby-rails`,
   `vercel-react-best-practices`), `.agents/skills/agent-browser` (D-13),
   `docs/Reto técnico.pdf` (source of truth, C2), `.gitignore`.
-- **Next (session 2026-10-23):** spec **005-openapi validated — `VEREDICTO:
-  APROBADO`** (T1–T6 + fix `c173a3f` from the browser smoke; RSpec **181/0**
-  incl. the 57-example anti-drift suite with 25 live replays and the drift drill;
-  UI try-it-out smoke done with a real 422 and a same-origin-only network log).
-  **Remaining: push + PR (CI runs there) + merge**, then MEMORY final sync; an
-  optional `/sdd-change` could fix spec RF-2:65's `stock`-in-POST wording (settled
-  by D-19 as an erratum — user's call). Next spec: `006-deploy` (last bonus;
-  OD-3 provider decision there). React skill NFR-3; agent-browser for smoke.
+- **Next (session 2026-10-23):** spec **005-openapi MERGED to `main`** (PR #7,
+  `f334bab`; push-trigger CI green) — validated `VEREDICTO: APROBADO`; UI smoke
+  with real try-it-out; erratum D-19 stands as the record for spec RF-2's wording
+  (user decision: no /sdd-change). **Nothing in flight.** Only **`006-deploy`**
+  remains (last bonus; **OD-3** — choose Railway vs Render vs Vercel — must be
+  settled there). React skill NFR-3; agent-browser for smoke.
 
 ## Key definitions (what is settled)
 
@@ -54,7 +52,7 @@ validated, and merged to `main`.**
 | `002-frontend-ui` | List, form (modal), delete + confirmation, loading/error/empty states, responsive, Tailwind, README, frontend tests | **done — merged to `main` (PR #2, `f351a0a`)**: validated + browser smoke 9/9 (suite 57/57, backend 90/0) |
 | `003-ci` | GitHub Actions: RSpec + frontend tests (if present) + build | **done — merged to `main` (PR #3, `c44e83b`)**: validated `VEREDICTO: APROBADO` (T1–T5: live runs incl. run-all drill, required check `CI` active, push-trigger run green) |
 | `004-data-integrity` | Soft delete + change audit | **done — merged to `main` (PR #5, `372f995`)**: validated `VEREDICTO: APROBADO` (124/0; 1 authorized 001 adaptation; frontend untouched; push-trigger CI green) |
-| `005-openapi` | API documentation | **validated `VEREDICTO: APROBADO`** (T1–T6 + post-smoke fix `c173a3f`; suite 181/0 incl. 57 anti-drift; UI self-contained try-it-out smoke done) — PR pending |
+| `005-openapi` | API documentation | **done — merged to `main` (PR #7, `f334bab`)**: validated `VEREDICTO: APROBADO` (181/0 incl. 57 anti-drift; UI self-contained; push-trigger CI green) |
 | `006-deploy` | Live deployment | pending (bonus) |
 
 A spec starts only when the previous one is `VEREDICTO: APROBADO`.
