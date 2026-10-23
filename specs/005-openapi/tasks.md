@@ -129,7 +129,7 @@ Rules:
     `docker compose exec backend bundle exec rspec` is green with every
     pre-existing example untouched (C7) — as one task-specific commit.
 
-- [ ] **T4. Anti-drift suite, live legs: check (e), the example replay (f), and
+- [x] **T4. Anti-drift suite, live legs: check (e), the example replay (f), and
   the simulated 500 (RF-6(e)(f), D-P45, D-P48).** Added to
   `backend/spec/requests/openapi_spec.rb`: **(e)** a real `GET` against fixtures
   created **through the API in the same example** — the response product's keys
