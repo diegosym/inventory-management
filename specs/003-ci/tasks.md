@@ -66,7 +66,7 @@ Rules:
     `git diff --stat` shows `README.md` as the only modified file — as one
     task-specific commit.
 
-- [ ] **T3. First real PR run, green (user / coordinator action).** Push the
+- [x] **T3. First real PR run, green (user / coordinator action).** Push the
   branch containing T1+T2 and open a pull request targeting `main`; the GitHub
   run executes the three verifications against the newest commit and is green.
   RF-1 (real evidence), RF-2, RF-4 (D-14 parity on a real runner), DoD (first
@@ -77,7 +77,7 @@ Rules:
     verification only). If the run is red, the coordinator reports the failing
     step to the user and implementation resumes before proceeding.
 
-- [ ] **T4. Run-all drill: a deliberately broken test turns the run red naming
+- [x] **T4. Run-all drill: a deliberately broken test turns the run red naming
   the failing verification, then reverted (user / coordinator action).** On the
   same PR branch, temporarily break one backend test and push: the run must stay
   red while still executing the remaining verifications, and the check UI must
@@ -90,7 +90,7 @@ Rules:
     restores a green run (evidence: both run URLs reported to the coordinator;
     no commit on `main` — verification only).
 
-- [ ] **T5. Required check activated and verified (user action).** The
+- [x] **T5. Required check activated and verified (user action).** The
   repository owner activates the branch protection per the README's T2
   instructions (required status check `CI` on `main`). Then, on a red PR state
   (e.g. reusing the T4 drill mechanism), confirm merging into `main` is

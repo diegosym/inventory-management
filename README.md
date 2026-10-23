@@ -110,10 +110,11 @@ tienen TTY (D-14):
 **Run-all:** si una verificación falla, las demás se ejecutan igual (no se
 cancelan entre sí) y el run queda en rojo, nombrando la verificación fallida.
 
-**Check requerido para mergear:** el check se llama `CI`. Hacerlo bloqueante es
-un ajuste **manual y único** del propietario del repositorio — *Settings →
-Branches → protección de `main` → Require a pull request before merging* y
-*Require status checks to pass* → añadir `CI`. Comportamiento resultante: un PR
+**Check requerido para mergear:** el check se llama `CI` y está activo como
+check requerido en `main` — configurado con un ajuste **manual y único** del
+propietario del repositorio: *Settings → Branches → protección de `main` →
+Require a pull request before merging* y *Require status checks to pass* →
+añadir `CI` (sin bypass de administradores). Comportamiento resultante: un PR
 con `CI` fallido o ausente no puede mergear en `main`; con `CI` verde, sí puede.
 
 ## API (resumen)
@@ -191,10 +192,10 @@ Fuente completa: `MEMORY.md` (D-1…D-12) y los planes de `specs/001` y
 
 Roadmap de bonus (`specs/README.md`), pendientes y entregables por separado:
 
-- **003 — CI:** entregado en el repo — el workflow `.github/workflows/ci.yml`
-  ejecuta RSpec, la suite frontend y el build en cada push a `main` y en cada
-  PR (ver «Integración continua (CI)»); pendiente la activación manual del
-  check requerido `CI`.
+- **003 — CI:** entregado — el workflow `.github/workflows/ci.yml` ejecuta
+  RSpec, la suite frontend y el build en cada push a `main` y en cada PR, y el
+  check `CI` es requerido para mergear en `main` (ver «Integración continua
+  (CI)»).
 - **004 — Integridad de datos:** soft delete + auditoría de cambios.
 - **005 — OpenAPI:** documentación automática de la API.
 - **006 — Deploy:** despliegue funcional (el proveedor es una decisión abierta,
