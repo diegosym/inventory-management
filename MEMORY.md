@@ -18,13 +18,14 @@ validated, and merged to `main`.**
   (9 `/sdd-*` commands, 4 agents, 3 skills: `sdd`, `ruby-rails`,
   `vercel-react-best-practices`), `.agents/skills/agent-browser` (D-13),
   `docs/Reto técnico.pdf` (source of truth, C2), `.gitignore`.
-- **Next (session 2026-10-23):** spec **004-data-integrity MERGED to `main`**
-  (PR #5, `372f995`; push-trigger CI green) — validated `VEREDICTO: APROBADO`,
-  D-15 closed OD-2, D-16 recorded, docs landed. **Nothing in flight.** Next spec
-  is `005-openapi` (API documentation; D-4 order) — starts only when the user asks.
-  Non-blocking reviewer optionals left out (decided by user): `ProductAudit.count`
-  assert on PUT-of-deleted 404, dedicated immutability example. React skill NFR-3;
-  agent-browser for viewport smoke.
+- **Next (session 2026-10-23):** spec **005-openapi validated — `VEREDICTO:
+  APROBADO`** (T1–T6 + fix `c173a3f` from the browser smoke; RSpec **181/0**
+  incl. the 57-example anti-drift suite with 25 live replays and the drift drill;
+  UI try-it-out smoke done with a real 422 and a same-origin-only network log).
+  **Remaining: push + PR (CI runs there) + merge**, then MEMORY final sync; an
+  optional `/sdd-change` could fix spec RF-2:65's `stock`-in-POST wording (settled
+  by D-19 as an erratum — user's call). Next spec: `006-deploy` (last bonus;
+  OD-3 provider decision there). React skill NFR-3; agent-browser for smoke.
 
 ## Key definitions (what is settled)
 
@@ -53,7 +54,7 @@ validated, and merged to `main`.**
 | `002-frontend-ui` | List, form (modal), delete + confirmation, loading/error/empty states, responsive, Tailwind, README, frontend tests | **done — merged to `main` (PR #2, `f351a0a`)**: validated + browser smoke 9/9 (suite 57/57, backend 90/0) |
 | `003-ci` | GitHub Actions: RSpec + frontend tests (if present) + build | **done — merged to `main` (PR #3, `c44e83b`)**: validated `VEREDICTO: APROBADO` (T1–T5: live runs incl. run-all drill, required check `CI` active, push-trigger run green) |
 | `004-data-integrity` | Soft delete + change audit | **done — merged to `main` (PR #5, `372f995`)**: validated `VEREDICTO: APROBADO` (124/0; 1 authorized 001 adaptation; frontend untouched; push-trigger CI green) |
-| `005-openapi` | API documentation | pending (bonus) |
+| `005-openapi` | API documentation | **validated `VEREDICTO: APROBADO`** (T1–T6 + post-smoke fix `c173a3f`; suite 181/0 incl. 57 anti-drift; UI self-contained try-it-out smoke done) — PR pending |
 | `006-deploy` | Live deployment | pending (bonus) |
 
 A spec starts only when the previous one is `VEREDICTO: APROBADO`.
@@ -194,6 +195,49 @@ Environment notes:
   representation deferred to `plan.md`); (d) only spec-001 tests encoding the
   superseded permanent-delete semantics may be adapted; every other test of
   001/002/003 must stay green untouched (C7).
+- **D-17 (spec 005, user decisions approved with the spec):** (a) the OpenAPI
+  document lives in the **repo and is served raw by the API** at a fixed URL
+  (RF-4); (b) an **interactive docs UI is in scope** at a fixed backend-origin
+  path (plan proposes; `/docs` referenced) rendering the served document — single
+  source of truth — with real try-it-out requests, **self-contained: assets served
+  by the application, no CDN/external network in the browser at runtime** (RF-5);
+  (c) the document **includes a 500 example** (generic C10 shape) and documents a
+  syntactically invalid JSON body **as implemented — 500 `internal_error`**
+  (observed live); RF-6 replay covers reproducible examples only, with the generic
+  500 verified by simulation (001 RF-16 precedent) and the served document
+  byte-identical to the committed file. **Supersession (C3):** 001 RF-3 and 004
+  RF-5 ("five routes") superseded one point each — route surface grows by the doc
+  route (RF-4) + UI route (RF-5). **Gate (C6):** the UI mechanism and ANY new
+  dependency or asset bundle require a MEMORY decision **before code** — plan
+  proposes, coordinator records.
+- **D-18 (spec 005, C6 gate approved with the plan):** **vendor the
+  `swagger-ui-dist` bundle — 3 static assets, pinned version, committed under
+  `backend/public/docs/swagger-ui/`** — for the self-contained interactive docs
+  UI (RF-5). Why: real try-it-out rendering with **zero changes to
+  Gemfile/package.json**, no network at build or runtime (no CDN), frontend
+  untouched; obtained once from the official npm tarball via `docker run …
+  node:22`. Discarded: gems `swagger-ui`/`rswag` (dependency + coupling),
+  `swagger-ui-react` (wrong origin), CDN (user veto, D-17b), hand-rolled
+  renderer (fallback only). Rest of plan: D-P40…D-P48 (OpenAPI 3.0.3 YAML at
+  `backend/public/docs/openapi.yaml`, static serving, anti-drift spec with stdlib
+  YAML + integration replay, UI smoke assigned to the coordinator — D-13).
+  **Plan note (T4):** the anti-drift spec parses the YAML **twice per run**
+  (load-time, to define one example per documented example — keeps failure
+  granularity — plus `before(:context)`) instead of D-P43's single parse; both
+  stdlib, no perf concern. **Vendor note (T2):** `swagger-ui-dist` ≥5.34 tarballs
+  are flat (`package/`, no `package/dist/`), and since 5.34 the standalone preset
+  no longer auto-registers — `index.html` must pass
+  `presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset]` (found by
+  the T6 browser smoke, fixed in `c173a3f`).
+- **D-19 (spec 005 RF-2 erratum, user decision during T1):** in **`POST`**, the
+  genuinely required fields are **`name`, `sku`, `price`** — `stock` is
+  **optional with column default `0`** (sending `null` → 422 `"is not a number"`).
+  The live code and 001's approved suite are the source of truth (C9/
+  Definitions: `stock integer, default: 0, null: false`); RF-2:65 enumerates
+  `stock` as required in one wrong word while mandating "as the model implements
+  it" — the document documents the code. **`PUT` is unchanged**: omitted required
+  field → 422 (full replacement). Verified live during T1's stop (C2), settled by
+  the user; no `/sdd-change` — this note is the erratum.
 
 ## Open decisions (OPEN DECISION)
 
