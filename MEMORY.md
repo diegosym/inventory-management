@@ -51,7 +51,7 @@ validated, and merged to `main`.**
 |---|---|---|
 | `001-backend-api` | Product model, validations, 5 endpoints, pagination/search/filter, seeds, RSpec | **done — merged to `main` (PR #1)** |
 | `002-frontend-ui` | List, form (modal), delete + confirmation, loading/error/empty states, responsive, Tailwind, README, frontend tests | **done — merged to `main` (PR #2, `f351a0a`)**: validated + browser smoke 9/9 (suite 57/57, backend 90/0) |
-| `003-ci` | GitHub Actions: RSpec + frontend tests (if present) + build | pending (bonus) |
+| `003-ci` | GitHub Actions: RSpec + frontend tests (if present) + build | spec + plan **approved** — drafting tasks (run-all, required check, D-14) |
 | `004-data-integrity` | Soft delete + change audit | pending (bonus) |
 | `005-openapi` | API documentation | pending (bonus) |
 | `006-deploy` | Live deployment | pending (bonus) |
@@ -173,6 +173,13 @@ Environment notes:
   `skills-lock.json`, committed) with its global CLI + Chrome for Testing under
   `~/.local/node-v24.22.1-darwin-x64` (PATH prepend). It does not touch the app
   stack (C8 unaffected): verification tooling only, used for T9's viewport checks.
+- **D-14 (spec 003, approved with the plan):** CI executes the **same documented
+  `docker compose` commands as local** (RSpec · Vitest · build — local/CI parity,
+  C8; referenced by RF-4) with **non-secret `POSTGRES_*` literals in the workflow's
+  `env:`** (NFR-1/C16; no `.env` on the runner, no GitHub `secrets`, compose `:?`
+  untouched). The only delta in CI: `exec`/`run` carry `-T` because runners have no
+  TTY (plan D-P29) — same images, same compose, same suites. Run-all on failure is
+  a spec requirement (RF-3, mechanism D-P26).
 
 ## Open decisions (OPEN DECISION)
 
