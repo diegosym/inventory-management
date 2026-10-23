@@ -73,7 +73,7 @@ Rules:
     suite touches only the `DELETE` success example plus the new file) — as one
     task-specific commit.
 
-- [ ] **T3. Audit storage and change entries (red → green on the new audit suite).**
+- [x] **T3. Audit storage and change entries (red → green on the new audit suite).**
   Tests first: new `backend/spec/requests/api/v1/audit_spec.rb` covering the
   entry semantics of RF-6/RF-7 — create → exactly one entry, action `create`,
   actor `"system"`, all created business values with `from: null`; update of

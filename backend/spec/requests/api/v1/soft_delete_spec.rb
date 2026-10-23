@@ -145,9 +145,10 @@ RSpec.describe 'Api::V1::Products soft delete' do
       )
     end
 
-    # The "no second audit entry" leg of a repeated DELETE is asserted from
-    # T3 on (audit suite); here only the 404 contract.
-    it 'a repeated DELETE answers 404 and keeps the row' do
+    # T3 adds the "no second audit entry" leg of a repeated DELETE (RF-3).
+    it 'a repeated DELETE answers 404, keeps the row, and records no second entry' do
+      audit_count = ProductAudit.count
+
       expect { delete "/api/v1/products/#{product.id}" }
         .not_to change { Product.unscoped.count }
 
@@ -156,6 +157,7 @@ RSpec.describe 'Api::V1::Products soft delete' do
         'error' => { 'code' => 'not_found', 'message' => 'Product not found' }
       )
       expect(Product.unscoped.find(product.id).deleted_at).to be_present
+      expect(ProductAudit.count).to eq(audit_count)
     end
 
     it 'a non-numeric id answers 404 (never 500)' do
