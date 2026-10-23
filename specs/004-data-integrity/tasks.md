@@ -98,7 +98,7 @@ Rules:
     is green and the full `docker compose exec backend bundle exec rspec` is
     green — as one task-specific commit.
 
-- [ ] **T4. Audit guarantees: atomicity, rejected requests, and the internal-only
+- [x] **T4. Audit guarantees: atomicity, rejected requests, and the internal-only
   surface (red → green on audit suite additions).** Tests first, added to
   `backend/spec/requests/api/v1/audit_spec.rb`: atomicity — stub the audit
   insert to raise and assert the product change is rolled back with no entry
