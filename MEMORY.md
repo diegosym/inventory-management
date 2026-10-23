@@ -24,8 +24,9 @@ with uncommitted changes.**
   browser (create/edit/422-aria/confirm/Escape/delete/clamp/backend-down +
   Lighthouse a11y 100) and responsive breakpoints via the `agent-browser` skill
   (`set viewport 480 800` → cards shown/table hidden, `1200 800` → inverse, back
-  and forth). **Only remaining step: open the PR to `main` (D-8)**; then specs
-  003–006 start per roadmap. React skill per NFR-3 throughout.
+  and forth). **PR #2 is open** (https://github.com/diegosym/inventory-management/pull/2,
+  awaiting merge); specs 003–006 start per roadmap after that. React skill per
+  NFR-3 throughout.
 
 ## Key definitions (what is settled)
 
@@ -51,7 +52,7 @@ with uncommitted changes.**
 | Spec | Scope | Status |
 |---|---|---|
 | `001-backend-api` | Product model, validations, 5 endpoints, pagination/search/filter, seeds, RSpec | implemented + validated (PR) |
-| `002-frontend-ui` | List, form (modal), delete + confirmation, loading/error/empty states, responsive, Tailwind, README, frontend tests | implemented + validated + browser smoke 9/9 (`ad304ac` fix round; suite 57/57, backend 90/0); PR pending |
+| `002-frontend-ui` | List, form (modal), delete + confirmation, loading/error/empty states, responsive, Tailwind, README, frontend tests | implemented + validated + browser smoke 9/9 (`ad304ac` fix round; suite 57/57, backend 90/0); **PR #2 open** |
 | `003-ci` | GitHub Actions: RSpec + frontend tests (if present) + build | pending (bonus) |
 | `004-data-integrity` | Soft delete + change audit | pending (bonus) |
 | `005-openapi` | API documentation | pending (bonus) |
