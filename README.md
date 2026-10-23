@@ -25,6 +25,7 @@ con teclado.
 ```
 ├── backend/            # Rails API (spec 001): modelo Product, 5 endpoints bajo
 │   │                   #   /api/v1/products, seeds y suite RSpec
+│   ├── public/docs/    # spec 005: documento OpenAPI, UI y assets vendorizados
 │   └── spec/           # modelos, requests, seeds y smoke
 ├── frontend/           # React + Vite (spec 002)
 │   └── src/
@@ -143,6 +144,48 @@ Las respuestas de éxito usan envelope `{ "data": … }`; el listado añade
   Los parámetros de listado malformados también responden 422 con `details`
   por parámetro.
 
+## Documentación de la API (OpenAPI)
+
+La API se describe con un documento **OpenAPI 3.0.3 escrito a mano** (no
+generado por el código), con un ejemplo reproducible por operación y por
+caso de error:
+
+- **Documento:** `backend/public/docs/openapi.yaml` en el repo, servido tal
+  cual en <http://localhost:3000/docs/openapi.yaml> (byte-idéntico al
+  archivo del repo).
+- **UI interactiva:** <http://localhost:3000/docs> — Swagger UI que renderiza
+  el documento servido (fuente única) con *try-it-out*; solo peticiones
+  same-origin, sin CDN.
+- **Suite anti-drift (RF-6):** `backend/spec/requests/openapi_spec.rb` corre
+  en la suite backend ordinaria (`docker compose exec backend bundle exec
+  rspec`) y verifica que el documento describa exactamente la API real:
+  rutas, parámetros, estados de éxito y de error, esquema del producto y
+  replay de los ejemplos documentados contra la API viva (incluido un 500
+  simulado). **Cualquier cambio de código que rompa el documento deja la
+  suite —y el CI— en rojo**: el documento no puede quedar desactualizado en
+  silencio.
+- **Swagger UI vendorizado:** `swagger-ui-dist@5.34.0` (versión pinned); los
+  tres archivos (`swagger-ui-bundle.js`, `swagger-ui-standalone-preset.js`,
+  `swagger-ui.css`) se obtuvieron una sola vez del tarball oficial npm y se
+  commitearon en `backend/public/docs/swagger-ui/` — assets vendados, no
+  dependencias: sin `package.json`/lockfile nuevos y sin red en runtime
+  (C6/D-18). Matiz del fetch: en el tarball ≥ 5.34 los assets están en
+  `package/`, **no** en `package/dist/` como en versiones anteriores.
+  Comando usado (patrón `docker run … node:22`, el host no tiene Node
+  usable):
+
+  ```sh
+  docker run --rm -v "$PWD":/w -w /w node:22 sh -c '
+    set -e
+    d=$(mktemp -d) && cd "$d"
+    npm pack --silent swagger-ui-dist@5.34.0
+    tar -xzf swagger-ui-dist-5.34.0.tgz
+    v=$(node -p "require(\"$d/package/package.json\").version")
+    [ "$v" = "5.34.0" ] || exit 1   # versión verificada en el tarball extraído
+    cp package/swagger-ui-bundle.js package/swagger-ui-standalone-preset.js package/swagger-ui.css /w/backend/public/docs/swagger-ui/
+  '
+  ```
+
 ## Integridad de datos (spec 004)
 
 Cada cambio persistido (create, update o soft delete) escribe, **en la misma
@@ -218,7 +261,11 @@ Roadmap de bonus (`specs/README.md`), pendientes y entregables por separado:
   (la fila permanece, invisible en todos los endpoints) y auditoría de cambios
   en la tabla interna `product_audits` con actor `"system"` (ver «Integridad
   de datos»).
-- **005 — OpenAPI:** documentación automática de la API.
+- **005 — OpenAPI:** entregado — documento OpenAPI 3.0.3 escrito a mano en
+  `backend/public/docs/openapi.yaml` (servido en `/docs/openapi.yaml`), UI
+  Swagger UI en `/docs` con assets vendorizados sin CDN y suite anti-drift
+  que verifica el documento contra el código en cada ejecución de la suite
+  backend (ver «Documentación de la API (OpenAPI)»).
 - **006 — Deploy:** despliegue funcional (el proveedor es una decisión abierta,
   OD-3).
 

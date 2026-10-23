@@ -163,7 +163,7 @@ Rules:
     corresponding example red, and reverting it restores green — the breakage is
     never committed — all landed as one task-specific commit.
 
-- [ ] **T5. README: the OpenAPI section (RF-8, D-P46).** New section
+- [x] **T5. README: the OpenAPI section (RF-8, D-P46).** New section
   **"Documentación de la API (OpenAPI)"**: where the document lives in the
   repository (`backend/public/docs/openapi.yaml`), its served URL
   (`/docs/openapi.yaml`) and the UI URL (`/docs`), how the anti-drift suite
