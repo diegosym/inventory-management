@@ -9,24 +9,21 @@ lessons, or development commands); skip routine passes with nothing new.
 ## Project status
 
 **Inventory Management** — product CRUD challenge (Rails API + React/TS).
-**Backend implemented and validated (spec 001); spec 002 (frontend) implementing:
-T1–T6 done and committed on `feature/002-frontend-ui`; T7 interrupted mid-task
-with uncommitted changes.**
+**Core complete: specs 001 (backend) and 002 (frontend) both implemented,
+validated, and merged to `main`.**
 
 - **Constitution established:** `docs/constitution.md` is official and approved —
   C1–C17, no amendments pending. No ADRs in this project: decisions live here (C4).
 - Foundation in place: `AGENTS.md`, `MEMORY.md`, `specs/README.md`, `.opencode/`
   (9 `/sdd-*` commands, 4 agents, 2 skills), `docs/Reto técnico.pdf` (source of
   truth, C2), `.gitignore`.
-- **Next (session 2026-10-22):** spec 002 is **complete: validated
-  (`VEREDICTO: APROBADO`, 1 correction round → `ad304ac`), docs closed, pushed to
-  origin, and the full T9 browser smoke passed 9/9** — flows via the OpenCode
-  browser (create/edit/422-aria/confirm/Escape/delete/clamp/backend-down +
-  Lighthouse a11y 100) and responsive breakpoints via the `agent-browser` skill
-  (`set viewport 480 800` → cards shown/table hidden, `1200 800` → inverse, back
-  and forth). **PR #2 is open** (https://github.com/diegosym/inventory-management/pull/2,
-  awaiting merge); specs 003–006 start per roadmap after that. React skill per
-  NFR-3 throughout.
+- **Next (session 2026-10-22):** **spec 002 MERGED to `main`** (PR #2,
+  `f351a0a`) — the core scope (specs 001–002) is complete: validated
+  (`VEREDICTO: APROBADO`), T9 browser smoke 9/9 (flows + responsive via
+  `agent-browser set viewport`), docs closed, lessons recorded (D-9 precision,
+  D-13 tooling). **Nothing in flight.** Next spec is `003-ci` (first bonus,
+  simplest-first D-4) — it starts only when the user asks for it (`/sdd-spec`).
+  React skill per NFR-3 throughout.
 
 ## Key definitions (what is settled)
 
@@ -52,7 +49,7 @@ with uncommitted changes.**
 | Spec | Scope | Status |
 |---|---|---|
 | `001-backend-api` | Product model, validations, 5 endpoints, pagination/search/filter, seeds, RSpec | implemented + validated (PR) |
-| `002-frontend-ui` | List, form (modal), delete + confirmation, loading/error/empty states, responsive, Tailwind, README, frontend tests | implemented + validated + browser smoke 9/9 (`ad304ac` fix round; suite 57/57, backend 90/0); **PR #2 open** |
+| `002-frontend-ui` | List, form (modal), delete + confirmation, loading/error/empty states, responsive, Tailwind, README, frontend tests | **done — merged to `main` (PR #2, `f351a0a`)**: validated + browser smoke 9/9 (suite 57/57, backend 90/0) |
 | `003-ci` | GitHub Actions: RSpec + frontend tests (if present) + build | pending (bonus) |
 | `004-data-integrity` | Soft delete + change audit | pending (bonus) |
 | `005-openapi` | API documentation | pending (bonus) |
