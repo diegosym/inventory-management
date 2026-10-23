@@ -18,14 +18,15 @@ validated, and merged to `main`.**
   (9 `/sdd-*` commands, 4 agents, 3 skills: `sdd`, `ruby-rails`,
   `vercel-react-best-practices`), `.agents/skills/agent-browser` (D-13),
   `docs/Reto técnico.pdf` (source of truth, C2), `.gitignore`.
-- **Next (session 2026-10-22):** spec **003-ci validated — `VEREDICTO: APROBADO`**
-  (T1–T5; PR #3 green, live runs: green `39888209048`, run-all drill red
-  `39888544635` with the other two green, revert green; required check `CI`
-  **active** on `main` with `enforce_admins` — verified `BLOCKED` (red) vs `CLEAN`
-  (green)). Docs closed in `7b2b4e7`. **Remaining: push the close-out commit and
-  merge PR #3** (user's gate) — after the merge, the `push`-to-`main` trigger gets
-  its first real run. Then spec `004-data-integrity` per roadmap (D-4).
-  React skill per NFR-3 throughout; agent-browser skill for viewport smoke.
+- **Next (session 2026-10-22):** spec **003-ci MERGED to `main`** (PR #3,
+  `c44e83b`) — validated `VEREDICTO: APROBADO`; all its evidence is in (green run
+  `39888209048`, run-all drill red with the other two green `39888544635`, revert
+  green, required check `CI` active with `enforce_admins`, red→`BLOCKED` /
+  green→`CLEAN`, and the `push`-to-`main` trigger run `39891045488` **success**).
+  **Nothing in flight.** Next spec is `004-data-integrity` (soft delete + change
+  audit; OD-2 about the audit "who" must be settled there) — starts only when the
+  user asks (D-4 roadmap order). React skill per NFR-3; agent-browser for viewport
+  smoke.
 
 ## Key definitions (what is settled)
 
@@ -52,7 +53,7 @@ validated, and merged to `main`.**
 |---|---|---|
 | `001-backend-api` | Product model, validations, 5 endpoints, pagination/search/filter, seeds, RSpec | **done — merged to `main` (PR #1)** |
 | `002-frontend-ui` | List, form (modal), delete + confirmation, loading/error/empty states, responsive, Tailwind, README, frontend tests | **done — merged to `main` (PR #2, `f351a0a`)**: validated + browser smoke 9/9 (suite 57/57, backend 90/0) |
-| `003-ci` | GitHub Actions: RSpec + frontend tests (if present) + build | **done — validated `VEREDICTO: APROBADO`** (T1–T5 incl. live runs, run-all drill, required check active); PR #3 awaiting merge |
+| `003-ci` | GitHub Actions: RSpec + frontend tests (if present) + build | **done — merged to `main` (PR #3, `c44e83b`)**: validated `VEREDICTO: APROBADO` (T1–T5: live runs incl. run-all drill, required check `CI` active, push-trigger run green) |
 | `004-data-integrity` | Soft delete + change audit | pending (bonus) |
 | `005-openapi` | API documentation | pending (bonus) |
 | `006-deploy` | Live deployment | pending (bonus) |
