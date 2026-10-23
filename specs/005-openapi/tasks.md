@@ -99,7 +99,7 @@ Rules:
     `docker compose exec backend bundle exec rspec` is green (C7) — as one
     task-specific commit.
 
-- [ ] **T3. Anti-drift suite, static legs: `backend/spec/requests/openapi_spec.rb`
+- [x] **T3. Anti-drift suite, static legs: `backend/spec/requests/openapi_spec.rb`
   — checks (a)–(d), (g) plus UI availability (RF-6, RF-7, RF-5 static).** One new
   request spec that runs in the ordinary `bundle exec rspec` suite (RF-7) and
   parses the committed document **once** (`before(:context)` +
