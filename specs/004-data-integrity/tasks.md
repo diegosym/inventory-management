@@ -48,7 +48,7 @@ Rules:
     commit. The DELETE endpoint still hard-deletes at this point (controller
     change is T2), so the 001 `DELETE` success example stays untouched and green.
 
-- [ ] **T2. DELETE becomes a soft delete; deleted rows invisible on every endpoint
+- [x] **T2. DELETE becomes a soft delete; deleted rows invisible on every endpoint
   (red → green on the request suite).** Tests first: adapt the single allowed
   001 example — the `DELETE` success case in
   `backend/spec/requests/api/v1/products_spec.rb` now asserts 204 + empty body

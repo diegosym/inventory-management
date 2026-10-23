@@ -289,7 +289,10 @@ RSpec.describe 'Api::V1::Products' do
   end
 
   describe 'DELETE /api/v1/products/:id' do
-    it 'removes the product and answers 204 with an empty body' do
+    # Spec 004 RF-1 (the single D-16(d) adaptation): the delete is a soft
+    # delete — the visible count drops, but the row remains with `deleted_at`
+    # set (`Product.unscoped`).
+    it 'soft-deletes the product, keeping the row, and answers 204 with an empty body' do
       product = create(:product)
 
       expect { delete "/api/v1/products/#{product.id}" }
@@ -297,6 +300,7 @@ RSpec.describe 'Api::V1::Products' do
 
       expect(response).to have_http_status(:no_content)
       expect(response.body).to be_empty
+      expect(Product.unscoped.find(product.id).deleted_at).to be_present
     end
 
     it 'returns 404 with the standard shape for an unknown id and deletes nothing' do

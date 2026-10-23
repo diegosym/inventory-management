@@ -65,9 +65,10 @@ module Api
         render json: { data: serialize_product(@product) }
       end
 
-      # DELETE /api/v1/products/:id -> 204, empty body (RF-6; permanent delete)
+      # DELETE /api/v1/products/:id -> 204, empty body (spec 004 RF-1: soft
+      # delete — the row stays with `deleted_at` set and leaves every listing)
       def destroy
-        @product.destroy!
+        @product.soft_delete!
         head :no_content
       end
 
