@@ -9,14 +9,24 @@ lessons, or development commands); skip routine passes with nothing new.
 ## Project status
 
 **Inventory Management** — product CRUD challenge (Rails API + React/TS).
-**Backend implemented and validated (spec 001); frontend not started.**
+**Backend implemented and validated (spec 001); spec 002 (frontend) implementing:
+T1–T6 done and committed on `feature/002-frontend-ui`; T7 interrupted mid-task
+with uncommitted changes.**
 
 - **Constitution established:** `docs/constitution.md` is official and approved —
   C1–C17, no amendments pending. No ADRs in this project: decisions live here (C4).
 - Foundation in place: `AGENTS.md`, `MEMORY.md`, `specs/README.md`, `.opencode/`
   (9 `/sdd-*` commands, 4 agents, 2 skills), `docs/Reto técnico.pdf` (source of
   truth, C2), `.gitignore`.
-- **Next:** merge the `feature/001-backend-api` PR → `/sdd-spec 002-frontend-ui`.
+- **Next (session 2026-10-22):** spec 002 is **complete: validated
+  (`VEREDICTO: APROBADO`, 1 correction round → `ad304ac`), docs closed, pushed to
+  origin, and the full T9 browser smoke passed 9/9** — flows via the OpenCode
+  browser (create/edit/422-aria/confirm/Escape/delete/clamp/backend-down +
+  Lighthouse a11y 100) and responsive breakpoints via the `agent-browser` skill
+  (`set viewport 480 800` → cards shown/table hidden, `1200 800` → inverse, back
+  and forth). **PR #2 is open** (https://github.com/diegosym/inventory-management/pull/2,
+  awaiting merge); specs 003–006 start per roadmap after that. React skill per
+  NFR-3 throughout.
 
 ## Key definitions (what is settled)
 
@@ -42,7 +52,7 @@ lessons, or development commands); skip routine passes with nothing new.
 | Spec | Scope | Status |
 |---|---|---|
 | `001-backend-api` | Product model, validations, 5 endpoints, pagination/search/filter, seeds, RSpec | implemented + validated (PR) |
-| `002-frontend-ui` | List, form, delete + confirmation, loading/error/empty states, responsive, Tailwind | pending |
+| `002-frontend-ui` | List, form (modal), delete + confirmation, loading/error/empty states, responsive, Tailwind, README, frontend tests | implemented + validated + browser smoke 9/9 (`ad304ac` fix round; suite 57/57, backend 90/0); **PR #2 open** |
 | `003-ci` | GitHub Actions: RSpec + frontend tests (if present) + build | pending (bonus) |
 | `004-data-integrity` | Soft delete + change audit | pending (bonus) |
 | `005-openapi` | API documentation | pending (bonus) |
@@ -74,6 +84,15 @@ docker compose exec backend bin/rails console
 # frontend
 docker compose run --rm frontend npm test       # frontend suite, when it exists
 docker compose exec frontend npm run build      # tsc + vite build
+
+# responsive / browser smoke (skill `.agents/skills/agent-browser`; CLI global
+# installed under ~/.local/node-v24.22.1-darwin-x64 — host Node 13 unusable)
+export PATH="$HOME/.local/node-v24.22.1-darwin-x64/bin:$PATH"
+agent-browser open http://localhost:5173
+agent-browser set viewport 480 800     # mobile: cards shown, table hidden
+agent-browser set viewport 1200 800    # desktop: inverse
+agent-browser eval "<js>"
+agent-browser close
 
 # stop
 docker compose down
@@ -123,9 +142,38 @@ Environment notes:
 - **D-9 (spec 001, mirror notes for 002):** frontend must replicate exactly — the
   `price` validation message `"must have at most 2 decimal places"` (key `price`);
   `active` must be sent as a JSON boolean (raw-value validation rejects `"yes"`);
-  POST/PUT bodies without the `{ "product": … }` envelope answer 422 (treated as an
-  empty product); CORS is restricted to `/api/v1/*` with `FRONTEND_ORIGIN` (default
-  `http://localhost:5173`).
+  **precision (T9 gate, 2026-10-22):** the 422 "no `{ "product": … }` envelope"
+  applies to an **empty/absent body** (validated by spec 001's RSpec); a JSON body
+  with top-level product keys is accepted as 201/200 because Rails API mode's
+  default `wrap_parameters` folds them into `params[:product]` — behavior of the
+  approved spec 001 backend, unchanged; the frontend always sends the envelope so
+  the mirror rule is unaffected; CORS is restricted to `/api/v1/*` with
+  `FRONTEND_ORIGIN` (default `http://localhost:5173`).
+- **D-10 (spec 002, approved with the spec):** frontend test stack = **Vitest +
+  React Testing Library** (RF-14, suite via `docker compose run --rm frontend npm
+  test`) — recorded before code per C6/D-3; **React Query and react-router are NOT
+  adopted**: plain `fetch` and a single-view modal UI (C6, user decision). Also from
+  the spec approval: search debounce ~300 ms (server-side `q`, resets to page 1),
+  literal save-confirmation dialog before every create/edit, and RF-12 accessibility
+  (labels/error association/keyboard) in scope (user).
+- **D-11 (spec 002, interpretation of NFR-4):** NFR-4 is satisfied with the
+  **env-driven API base URL** (`VITE_API_BASE_URL`) plus the **documented fixed
+  dev-server origin default `http://localhost:5173`** — RF-1 of the same spec pins
+  that default and CORS already defaults to it (D-9). The dev-server host/port stays
+  in `vite.config.ts` and does not go through env vars. User-approved ruling; no
+  plan amendment needed.
+- **D-13 (tooling, 2026-10-22, user-requested):** the **`agent-browser` skill**
+  (vercel-labs/agent-browser) is the project's browser-automation/responsive-smoke
+  tool — installed via the `skills` CLI (`.agents/skills/agent-browser` +
+  `skills-lock.json`, committed) with its global CLI + Chrome for Testing under
+  `~/.local/node-v24.22.1-darwin-x64` (PATH prepend). It does not touch the app
+  stack (C8 unaffected): verification tooling only, used for T9's viewport checks.
+- **D-12 (spec 002, mirror source of truth):** the frontend mirrors the **live
+  backend messages of 001** (`backend/app/models/product.rb` + its specs), not the
+  prose examples of the plan (erratum found in plan D-P18 during T2 and corrected):
+  blank `price`/`stock` → `"is not a number"`, `name` >100 → `"is too long (maximum
+  is 100 characters)"`, negative price → `"must be greater than 0"` (validation
+  order: numeric → >0 → ≤2 decimals). C14/RF-6 prevail over plan examples.
 
 ## Open decisions (OPEN DECISION)
 
@@ -147,3 +195,18 @@ Environment notes:
 - Do not edit `MEMORY.md` in parallel with an implementer task: the uncommitted note
   blocks the implementer's git-status check (it stopped T2 correctly); batch MEMORY
   updates between tasks or into the task's own docs commit.
+- Agent permission allowlists (`edit: * → deny` + explicit allows in
+  `.opencode/agents/*.md`) can stall a task when its file surface exceeds the
+  allowlist (T8 needed root `README.md`, initially denied). When a task needs a
+  path outside the allowlist, fix the agent frontmatter first (user-approved) —
+  neither coordinator nor subagents can edit agent config themselves (by design).
+- The implementer cannot run visual browser smoke (no desktop browser connected);
+  UI-heavy Done-when items should plan for a user-run smoke or an explicit waiver —
+  or use the tooling that solves it: the coordinator's smoke completed 9/9 with the
+  built-in OpenCode browser (flows) + `agent-browser set viewport` (breakpoints);
+  no user window resizing was needed after all.
+- Host tooling limits: Node 13 on PATH is unusable and `~/.local/node22`'s npm is
+  broken; `~/.local/node-v24.22.1-darwin-x64` works with a PATH prepend. Modern
+  CLIs that need Node ≥22 (e.g. the `skills` installer) run inside
+  `docker run --rm -v "$PWD":/repo -w /repo node:22 npx -y …` with
+  `--agent '*' -y` for non-interactive installs.

@@ -1,0 +1,2 @@
+# Frontend build output (`npm run build` writes here via the compose bind mount)
+dist/

@@ -1,4 +1,4 @@
-# Spec 001 — db + backend only; the `frontend` service is added in spec 002 (D-P6).
+# db + backend (spec 001) + frontend (spec 002, D-P13).
 # Copy .env.example to .env before starting (C16: no secrets committed).
 services:
   db:
@@ -30,6 +30,19 @@ services:
       - "3000:3000"
     volumes:
       - ./backend:/app
+
+  frontend:
+    build: ./frontend
+    environment:
+      # Browser-reachable backend URL (D-P14): the host-mapped port, since the
+      # browser (not the container) makes the API calls.
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:3000}
+    ports:
+      - "5173:5173"
+    volumes:
+      # Bind mount for HMR; the anonymous volume keeps the image's node_modules.
+      - ./frontend:/app
+      - /app/node_modules
 
 volumes:
   db_data:
