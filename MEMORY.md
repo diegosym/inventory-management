@@ -18,13 +18,14 @@ with uncommitted changes.**
 - Foundation in place: `AGENTS.md`, `MEMORY.md`, `specs/README.md`, `.opencode/`
   (9 `/sdd-*` commands, 4 agents, 2 skills), `docs/Reto técnico.pdf` (source of
   truth, C2), `.gitignore`.
-- **Next (session 2026-10-22):** spec 002 **validated — `VEREDICTO: APROBADO`**
-  (reviewer, 1 correction round: RF-8 all-422-messages + RF-14 create-POST coverage
-  fixed in `ad304ac`; suite 57/57, backend 90/0, build green). Remaining: (1) the
-  **manual browser smoke was never executed** — user must enable the desktop
-  browser, do it themselves, or explicitly waive it (logic covered by tests),
-  (2) docs close-out (T9 `[x]`, spec status → implemented), (3) push 18+ commits
-  and open the PR to `main` (D-8). React skill per NFR-3 throughout.
+- **Next (session 2026-10-22):** spec 002 is **complete: validated
+  (`VEREDICTO: APROBADO`, 1 correction round → `ad304ac`), docs closed, pushed to
+  origin, and the full T9 browser smoke passed 9/9** — flows via the OpenCode
+  browser (create/edit/422-aria/confirm/Escape/delete/clamp/backend-down +
+  Lighthouse a11y 100) and responsive breakpoints via the `agent-browser` skill
+  (`set viewport 480 800` → cards shown/table hidden, `1200 800` → inverse, back
+  and forth). **Only remaining step: open the PR to `main` (D-8)**; then specs
+  003–006 start per roadmap. React skill per NFR-3 throughout.
 
 ## Key definitions (what is settled)
 
@@ -50,7 +51,7 @@ with uncommitted changes.**
 | Spec | Scope | Status |
 |---|---|---|
 | `001-backend-api` | Product model, validations, 5 endpoints, pagination/search/filter, seeds, RSpec | implemented + validated (PR) |
-| `002-frontend-ui` | List, form (modal), delete + confirmation, loading/error/empty states, responsive, Tailwind, README, frontend tests | validated (`VEREDICTO: APROBADO`, suite 57/57 + backend 90/0); docs close-out + PR pending; manual browser smoke outstanding |
+| `002-frontend-ui` | List, form (modal), delete + confirmation, loading/error/empty states, responsive, Tailwind, README, frontend tests | implemented + validated + browser smoke 9/9 (`ad304ac` fix round; suite 57/57, backend 90/0); PR pending |
 | `003-ci` | GitHub Actions: RSpec + frontend tests (if present) + build | pending (bonus) |
 | `004-data-integrity` | Soft delete + change audit | pending (bonus) |
 | `005-openapi` | API documentation | pending (bonus) |
@@ -82,6 +83,15 @@ docker compose exec backend bin/rails console
 # frontend
 docker compose run --rm frontend npm test       # frontend suite, when it exists
 docker compose exec frontend npm run build      # tsc + vite build
+
+# responsive / browser smoke (skill `.agents/skills/agent-browser`; CLI global
+# installed under ~/.local/node-v24.22.1-darwin-x64 — host Node 13 unusable)
+export PATH="$HOME/.local/node-v24.22.1-darwin-x64/bin:$PATH"
+agent-browser open http://localhost:5173
+agent-browser set viewport 480 800     # mobile: cards shown, table hidden
+agent-browser set viewport 1200 800    # desktop: inverse
+agent-browser eval "<js>"
+agent-browser close
 
 # stop
 docker compose down
@@ -151,6 +161,12 @@ Environment notes:
   that default and CORS already defaults to it (D-9). The dev-server host/port stays
   in `vite.config.ts` and does not go through env vars. User-approved ruling; no
   plan amendment needed.
+- **D-13 (tooling, 2026-10-22, user-requested):** the **`agent-browser` skill**
+  (vercel-labs/agent-browser) is the project's browser-automation/responsive-smoke
+  tool — installed via the `skills` CLI (`.agents/skills/agent-browser` +
+  `skills-lock.json`, committed) with its global CLI + Chrome for Testing under
+  `~/.local/node-v24.22.1-darwin-x64` (PATH prepend). It does not touch the app
+  stack (C8 unaffected): verification tooling only, used for T9's viewport checks.
 - **D-12 (spec 002, mirror source of truth):** the frontend mirrors the **live
   backend messages of 001** (`backend/app/models/product.rb` + its specs), not the
   prose examples of the plan (erratum found in plan D-P18 during T2 and corrected):
@@ -184,4 +200,12 @@ Environment notes:
   path outside the allowlist, fix the agent frontmatter first (user-approved) —
   neither coordinator nor subagents can edit agent config themselves (by design).
 - The implementer cannot run visual browser smoke (no desktop browser connected);
-  UI-heavy Done-when items should plan for a user-run smoke or an explicit waiver.
+  UI-heavy Done-when items should plan for a user-run smoke or an explicit waiver —
+  or use the tooling that solves it: the coordinator's smoke completed 9/9 with the
+  built-in OpenCode browser (flows) + `agent-browser set viewport` (breakpoints);
+  no user window resizing was needed after all.
+- Host tooling limits: Node 13 on PATH is unusable and `~/.local/node22`'s npm is
+  broken; `~/.local/node-v24.22.1-darwin-x64` works with a PATH prepend. Modern
+  CLIs that need Node ≥22 (e.g. the `skills` installer) run inside
+  `docker run --rm -v "$PWD":/repo -w /repo node:22 npx -y …` with
+  `--agent '*' -y` for non-interactive installs.
