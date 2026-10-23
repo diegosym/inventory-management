@@ -220,6 +220,15 @@ Environment notes:
   renderer (fallback only). Rest of plan: D-P40…D-P48 (OpenAPI 3.0.3 YAML at
   `backend/public/docs/openapi.yaml`, static serving, anti-drift spec with stdlib
   YAML + integration replay, UI smoke assigned to the coordinator — D-13).
+- **D-19 (spec 005 RF-2 erratum, user decision during T1):** in **`POST`**, the
+  genuinely required fields are **`name`, `sku`, `price`** — `stock` is
+  **optional with column default `0`** (sending `null` → 422 `"is not a number"`).
+  The live code and 001's approved suite are the source of truth (C9/
+  Definitions: `stock integer, default: 0, null: false`); RF-2:65 enumerates
+  `stock` as required in one wrong word while mandating "as the model implements
+  it" — the document documents the code. **`PUT` is unchanged**: omitted required
+  field → 422 (full replacement). Verified live during T1's stop (C2), settled by
+  the user; no `/sdd-change` — this note is the erratum.
 
 ## Open decisions (OPEN DECISION)
 
