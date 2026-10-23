@@ -159,7 +159,7 @@ Rules:
     the README's own steps cleanly and every command printed in the README
     matches `MEMORY.md → Development commands` — as one task-specific commit.
 
-- [ ] **T9. Definition-of-Done gate.** Run the full battery and a manual
+- [x] **T9. Definition-of-Done gate.** Run the full battery and a manual
   smoke of every flow against the seeded dataset: list, search, filter,
   paginate (including deleting the last product of the last page), create,
   edit, save-confirmation cancel, delete-confirmation, the 422 field errors,
@@ -184,6 +184,11 @@ docker compose run --rm frontend npm test
 docker compose exec frontend npm run build
 docker compose exec backend bundle exec rspec
 ```
+
+Executed 2026-10-22 — all green: frontend suite 57/57 (after the RF-8/RF-14
+corrections in `ad304ac`), backend rspec 90/0, build green, API smoke green;
+the gate found nothing else to change in the repo → no T9 commit (same rationale
+as spec 001's final check).
 
 ## RF coverage
 

@@ -1,6 +1,6 @@
 # Spec 002 — Frontend UI (Product CRUD)
 
-Status: approved
+Status: implemented
 
 ## Context and goal
 
