@@ -1,0 +1,815 @@
+# OpenAPI 3.0.3 document for the Inventory Management product API.
+# Hand-written (plan 005 D-P40); the code remains the source of truth and the
+# anti-drift suite (spec 005 RF-6) fails whenever this document diverges.
+openapi: 3.0.3
+info:
+  title: Inventory Management API
+  version: "1.0.0"
+  description: |
+    Product CRUD API delivered by the Rails backend (specs 001 + 004):
+    server-side listing, full-replacement updates, soft delete.
+
+    Notes:
+
+    - Every error answers the single
+      `{ "error": { "code", "message", "details" } }` shape; `details` appears
+      only on 422 (`validation_failed`), keyed by the failing field — or by the
+      listing parameter name (`page`, `q`, `active`) on malformed query
+      parameters.
+    - The change audit introduced by spec 004 is an internal table with **no
+      endpoints**; nothing beyond the five operations below is exposed.
+    - The API has no authentication or authorization; requests are plain JSON
+      over HTTP.
+servers:
+  - url: http://localhost:3000
+    description: Development base URL delivered by docker compose
+tags:
+  - name: products
+    description: The product resource
+paths:
+  /api/v1/products:
+    get:
+      tags: [products]
+      operationId: listProducts
+      summary: List products (paginated, searchable, filterable)
+      description: |
+        Server-side listing: exactly 10 items per page (`page` defaults to 1),
+        `q` a case-insensitive substring filter on `name` (a whitespace-only or
+        empty term counts as no term; `%` and `_` match literally), `active` an
+        active/inactive filter — all resolved in the database and combined with
+        the stable order `created_at DESC, id DESC`. No match or an
+        out-of-range page answers 200 with an empty `data` and `meta` echoing
+        the requested page (never 404).
+      parameters:
+        - name: page
+          in: query
+          required: false
+          description: |
+            1-based page number: a positive integer, default 1 (10 items per
+            page). A non-integer or non-positive value answers 422.
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          examples:
+            emptyOutOfRangePage:
+              value: 99
+              summary: A valid page beyond the data set -> 200, empty data, current_page echoed
+            malformedPage:
+              value: "abc"
+              summary: A non-integer page (also 0 or an empty value) answers 422
+        - name: q
+          in: query
+          required: false
+          description: |
+            Case-insensitive substring filter on `name`, resolved in the
+            database. A whitespace-only or empty term counts as no term (full
+            listing); `%` and `_` match literally. A non-string value (for
+            example a repeated parameter) answers 422.
+          schema:
+            type: string
+          examples:
+            emptyNoMatch:
+              value: zzz-no-match
+              summary: No product matches -> 200 with an empty list (never 404)
+            malformedQ:
+              value: [ab, cd]
+              summary: A non-string `q` (e.g. `q[]=ab&q[]=cd`) answers 422
+        - name: active
+          in: query
+          required: false
+          description: |
+            Filters by product state; must be the literal string `true` or
+            `false`. Any other value (including empty) answers 422.
+          schema:
+            type: string
+            enum: ["true", "false"]
+          examples:
+            malformedActive:
+              value: maybe
+              summary: A value other than "true"/"false" answers 422
+      responses:
+        "200":
+          description: |
+            The requested page, the matching products, and the pagination
+            metadata. An out-of-range page or a no-match search answers 200
+            with an empty `data` and `meta` echoing the requested page.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductListEnvelope"
+              examples:
+                listing:
+                  summary: The first page (the worked listing's single fixture, created via the documented POST example)
+                  value:
+                    data:
+                      - id: 1
+                        name: Mechanical Keyboard
+                        description: Brown switches
+                        price: "49.99"
+                        stock: 12
+                        sku: ABC-123
+                        active: true
+                        created_at: "2026-01-10T12:00:00Z"
+                        updated_at: "2026-01-10T12:00:00Z"
+                    meta:
+                      current_page: 1
+                      total_count: 1
+                      total_pages: 1
+                emptyNoMatch:
+                  summary: '`q=zzz-no-match` matches nothing -> empty data, zeroed meta'
+                  value:
+                    data: []
+                    meta:
+                      current_page: 1
+                      total_count: 0
+                      total_pages: 0
+                emptyOutOfRangePage:
+                  summary: '`page=99` beyond the worked listing''s single product -> empty data echoing current_page'
+                  value:
+                    data: []
+                    meta:
+                      current_page: 99
+                      total_count: 1
+                      total_pages: 1
+        "422":
+          description: |
+            Malformed listing parameters; `details` is keyed by the parameter
+            name. Every malformed parameter is reported together.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                malformedPage:
+                  summary: '`page` is not a positive integer (e.g. `page=abc`, `page=0`, or empty)'
+                  value:
+                    error:
+                      code: validation_failed
+                      message: Validation failed
+                      details:
+                        page: ["must be a positive integer"]
+                malformedQ:
+                  summary: '`q` is not a string (e.g. `q[]=ab&q[]=cd`)'
+                  value:
+                    error:
+                      code: validation_failed
+                      message: Validation failed
+                      details:
+                        q: ["must be a string"]
+                malformedActive:
+                  summary: '`active` is neither the string `true` nor `false` (e.g. `active=maybe` or empty)'
+                  value:
+                    error:
+                      code: validation_failed
+                      message: Validation failed
+                      details:
+                        active: ["must be true or false"]
+        "500":
+          description: Generic internal error; internals are logged server-side and never exposed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error:
+                  code: internal_error
+                  message: Internal server error
+    post:
+      tags: [products]
+      operationId: createProduct
+      summary: Create a product
+      description: |
+        Creates a product from the wrapped body. `name`, `price`, and `sku` are
+        required; `stock` defaults to 0, `description` to the empty string, and
+        `active` to `true`. The SKU is uppercased before validation and storage
+        (`abc-123` -> `ABC-123`) and must be unique among non-deleted products.
+        A missing, null, or empty wrapper behaves like an empty product and
+        answers 422. Nothing is persisted on 422.
+      requestBody:
+        required: true
+        description: "The product fields wrapped as `{ \"product\": { … } }`."
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductCreateRequest"
+            examples:
+              worked:
+                summary: Worked creation — `price` is a JSON number; `active` defaults to true
+                value:
+                  product:
+                    name: Mechanical Keyboard
+                    description: Brown switches
+                    price: 49.99
+                    stock: 12
+                    sku: abc-123
+              invalidBody:
+                summary: Several invalid fields at once -> a single 422 with per-field details
+                value:
+                  product:
+                    name: AB
+                    price: -1
+                    stock: -5
+                    sku: abc 123
+              missingWrapper:
+                summary: An empty body behaves like an empty product -> 422 on the genuinely missing required fields
+                value: {}
+              invalidJson:
+                summary: >-
+                  Syntactically invalid JSON, sent raw exactly as shown (not
+                  JSON-encoded) — the API answers 500, documented as
+                  implemented
+                value: '{"product": {"name": "Broken"'
+      responses:
+        "201":
+          description: |
+            The created product, wrapped in `data`. `price` is a 2-decimal
+            string, `sku` uppercase-normalized, `active` defaulted to true,
+            timestamps ISO-8601 UTC.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductEnvelope"
+              examples:
+                worked:
+                  summary: The product created by the `worked` request example
+                  value:
+                    data:
+                      id: 1
+                      name: Mechanical Keyboard
+                      description: Brown switches
+                      price: "49.99"
+                      stock: 12
+                      sku: ABC-123
+                      active: true
+                      created_at: "2026-01-10T12:00:00Z"
+                      updated_at: "2026-01-10T12:00:00Z"
+        "422":
+          description: |
+            Validation failure, with nothing persisted; `details` is keyed by
+            field with the model's validation messages.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                invalidBody:
+                  summary: The per-field details of the `invalidBody` request example
+                  value:
+                    error:
+                      code: validation_failed
+                      message: Validation failed
+                      details:
+                        name: ["is too short (minimum is 3 characters)"]
+                        price: ["must be greater than 0"]
+                        stock: ["must be greater than or equal to 0"]
+                        sku: ["is invalid"]
+                missingWrapper:
+                  summary: Empty body -> the genuinely missing required fields (`stock`/`active`/`description` have defaults)
+                  value:
+                    error:
+                      code: validation_failed
+                      message: Validation failed
+                      details:
+                        name: ["can't be blank", "is too short (minimum is 3 characters)"]
+                        price: ["is not a number"]
+                        sku: ["can't be blank"]
+        "500":
+          description: |
+            Generic internal error. A syntactically invalid JSON body (the
+            `invalidJson` request example, replayed as-is) is answered with
+            this same shape — documented as implemented.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                genericError:
+                  summary: Generic internal error (unexpected server error)
+                  value:
+                    error:
+                      code: internal_error
+                      message: Internal server error
+                invalidJson:
+                  summary: The syntactically invalid JSON body, answered as the API really responds
+                  value:
+                    error:
+                      code: internal_error
+                      message: Internal server error
+  /api/v1/products/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: |
+          The product id. Unknown ids — including non-numeric values like
+          `abc` and soft-deleted products' ids — answer 404 (never 500).
+        schema:
+          type: string
+        examples:
+          existingId:
+            value: "<existing-id>"
+            summary: Any existing, non-deleted product id (the documented replay sentinel)
+          deletedProduct:
+            value: "<existing-id>"
+            summary: A soft-deleted product's id (DELETE it first) -> 404
+          unknownId:
+            value: "99999999"
+            summary: An id that never existed -> 404
+          nonNumericId:
+            value: abc
+            summary: A non-numeric id -> 404 (never 500)
+    get:
+      tags: [products]
+      operationId: getProduct
+      summary: Fetch one product
+      description: Returns the product identified by `:id`, wrapped in `data`.
+      responses:
+        "200":
+          description: The product, wrapped in `data`.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductEnvelope"
+              examples:
+                existingId:
+                  summary: The product identified by the `existingId` path example
+                  value:
+                    data:
+                      id: 1
+                      name: Mechanical Keyboard
+                      description: Brown switches
+                      price: "49.99"
+                      stock: 12
+                      sku: ABC-123
+                      active: true
+                      created_at: "2026-01-10T12:00:00Z"
+                      updated_at: "2026-01-10T12:00:00Z"
+        "404":
+          description: |
+            Unknown id, a non-numeric id, or a soft-deleted product's id — the
+            standard error shape, never 500.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                unknownId:
+                  summary: The `unknownId` path example -> 404
+                  value:
+                    error:
+                      code: not_found
+                      message: Product not found
+                nonNumericId:
+                  summary: The `nonNumericId` path example -> 404 (never 500)
+                  value:
+                    error:
+                      code: not_found
+                      message: Product not found
+                deletedProduct:
+                  summary: The `deletedProduct` path example (a soft-deleted product) -> 404
+                  value:
+                    error:
+                      code: not_found
+                      message: Product not found
+        "500":
+          description: Generic internal error; internals are logged server-side and never exposed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error:
+                  code: internal_error
+                  message: Internal server error
+    put:
+      tags: [products]
+      operationId: updateProduct
+      summary: Replace a product (full replacement)
+      description: |
+        `PUT` is a full replacement under the same validations as create:
+        every omitted required field (`name`, `sku`, `price`, `stock`) is
+        treated as `null` and answers 422; an omitted or null `description` is
+        stored empty; an omitted `active` keeps the product's current value
+        (it never resets to `true`; `active: null` or non-boolean answers
+        422). The SKU is uppercased and must be unique among non-deleted
+        products (keeping the product's own SKU is valid).
+      requestBody:
+        required: true
+        description: "The product fields wrapped as `{ \"product\": { … } }`."
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductUpdateRequest"
+            examples:
+              worked:
+                summary: Worked replacement — every field sent anew; `price` is a JSON number; the SKU is uppercased
+                value:
+                  product:
+                    name: New Name
+                    description: New desc
+                    price: 75.5
+                    stock: 20
+                    sku: new-1
+                    active: false
+              omittedRequiredField:
+                summary: "`stock` omitted (full replacement -> treated as null) while keeping the product's own SKU"
+                value:
+                  product:
+                    name: Renamed Now
+                    sku: ABC-123
+                    price: 10
+              nullActive:
+                summary: '`active: null` -> 422 (only an omitted `active` keeps the current value)'
+                value:
+                  product:
+                    name: Renamed Attempt
+                    sku: ABC-123
+                    price: 10
+                    stock: 1
+                    active: null
+              invalidJson:
+                summary: >-
+                  Syntactically invalid JSON, sent raw exactly as shown (not
+                  JSON-encoded) — the API answers 500, documented as
+                  implemented
+                value: '{"product": {"name": "Broken"'
+      responses:
+        "200":
+          description: The updated product, wrapped in `data`.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductEnvelope"
+              examples:
+                existingId:
+                  summary: The product after the `worked` request example (price serialized with 2 decimals)
+                  value:
+                    data:
+                      id: 1
+                      name: New Name
+                      description: New desc
+                      price: "75.50"
+                      stock: 20
+                      sku: NEW-1
+                      active: false
+                      created_at: "2026-01-10T12:00:00Z"
+                      updated_at: "2026-01-10T12:05:00Z"
+        "404":
+          description: |
+            Unknown id, a non-numeric id, or a soft-deleted product's id — the
+            standard error shape, never 500; nothing is changed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                unknownId:
+                  summary: The `unknownId` path example -> 404
+                  value:
+                    error:
+                      code: not_found
+                      message: Product not found
+                nonNumericId:
+                  summary: The `nonNumericId` path example -> 404 (never 500)
+                  value:
+                    error:
+                      code: not_found
+                      message: Product not found
+                deletedProduct:
+                  summary: The `deletedProduct` path example (a soft-deleted product) -> 404
+                  value:
+                    error:
+                      code: not_found
+                      message: Product not found
+        "422":
+          description: |
+            Validation failure, with nothing persisted; `details` is keyed by
+            field with the model's validation messages.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                omittedRequiredField:
+                  summary: The per-field details of the `omittedRequiredField` request example
+                  value:
+                    error:
+                      code: validation_failed
+                      message: Validation failed
+                      details:
+                        stock: ["is not a number"]
+                nullActive:
+                  summary: The per-field details of the `nullActive` request example
+                  value:
+                    error:
+                      code: validation_failed
+                      message: Validation failed
+                      details:
+                        active: ["is not included in the list"]
+        "500":
+          description: |
+            Generic internal error. A syntactically invalid JSON body (the
+            `invalidJson` request example, replayed as-is) is answered with
+            this same shape — documented as implemented.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                genericError:
+                  summary: Generic internal error (unexpected server error)
+                  value:
+                    error:
+                      code: internal_error
+                      message: Internal server error
+                invalidJson:
+                  summary: The syntactically invalid JSON body, answered as the API really responds
+                  value:
+                    error:
+                      code: internal_error
+                      message: Internal server error
+    delete:
+      tags: [products]
+      operationId: deleteProduct
+      summary: Delete a product (soft delete)
+      description: |
+        Soft delete (spec 004): only `deleted_at` is written. The product
+        leaves every listing (and its `meta` counts), its SKU becomes
+        reusable, and the row is kept. Repeating the DELETE on the same
+        product answers 404 and records no second audit entry.
+      responses:
+        "204":
+          description: Deleted; 204 with an empty body, no content.
+        "404":
+          description: |
+            Unknown id, a non-numeric id, or a repeated DELETE of an already
+            soft-deleted product — the standard error shape, never 500.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                unknownId:
+                  summary: The `unknownId` path example -> 404; nothing is deleted
+                  value:
+                    error:
+                      code: not_found
+                      message: Product not found
+                nonNumericId:
+                  summary: The `nonNumericId` path example -> 404 (never 500)
+                  value:
+                    error:
+                      code: not_found
+                      message: Product not found
+                repeatedDelete:
+                  summary: The `deletedProduct` path example deleted twice -> 404 on the second DELETE
+                  value:
+                    error:
+                      code: not_found
+                      message: Product not found
+        "500":
+          description: Generic internal error; internals are logged server-side and never exposed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error:
+                  code: internal_error
+                  message: Internal server error
+components:
+  schemas:
+    ProductCreateRequest:
+      type: object
+      description: The POST request body wrapper.
+      required: [product]
+      properties:
+        product:
+          $ref: "#/components/schemas/ProductCreate"
+    ProductUpdateRequest:
+      type: object
+      description: The PUT request body wrapper (full replacement).
+      required: [product]
+      properties:
+        product:
+          $ref: "#/components/schemas/ProductUpdate"
+    ProductCreate:
+      type: object
+      description: |
+        Product fields for POST: `name`, `price`, and `sku` required; `stock`
+        (default 0), `description` (default empty), and `active` (default
+        true) optional.
+      required: [name, price, sku]
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 100
+          description: |
+            Required. 3–100 characters; blank or too short -> 422
+            `can't be blank` / `is too short (minimum is 3 characters)`,
+            too long -> 422 `is too long (maximum is 100 characters)`.
+        description:
+          type: string
+          maxLength: 1000
+          nullable: true
+          description: |
+            At most 1000 characters (more -> 422). Optional; omitted or null
+            -> stored empty.
+        price:
+          type: number
+          minimum: 0
+          exclusiveMinimum: true
+          example: 49.99
+          description: |
+            Required. Greater than 0, sent as a JSON number (requests never
+            use the response's string form), with at most 2 decimal places:
+            more decimals -> 422 `must have at most 2 decimal places`;
+            non-numeric or null -> 422 `is not a number`.
+        stock:
+          type: integer
+          minimum: 0
+          example: 12
+          description: |
+            Optional, defaults to 0 (column default). An integer ≥ 0 when
+            sent (negative or fractional -> 422); `null` -> 422
+            `is not a number`.
+        sku:
+          type: string
+          pattern: "^[A-Z0-9-]+$"
+          example: KB-001
+          description: |
+            Required. Uppercase letters, digits, and hyphens — lowercase
+            input is uppercased before validation and storage (`abc-123` ->
+            `ABC-123`); other characters -> 422 `is invalid`. Unique among
+            non-deleted products: a taken SKU -> 422 `has already been
+            taken`.
+        active:
+          type: boolean
+          default: true
+          description: |
+            Optional, defaults to `true`. Must be a JSON boolean — null or
+            any other value (e.g. the string `"yes"`) -> 422
+            `is not included in the list`.
+    ProductUpdate:
+      type: object
+      description: |
+        Product fields for PUT — a full replacement: every omitted required
+        field is treated as null and answers 422.
+      required: [name, price, sku, stock]
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 100
+          description: |
+            Required. 3–100 characters; omitted or null -> 422 `can't be
+            blank`, same length rules as create.
+        description:
+          type: string
+          maxLength: 1000
+          nullable: true
+          description: |
+            At most 1000 characters (more -> 422). Omitted or null -> stored
+            empty (never keeps the previous value).
+        price:
+          type: number
+          minimum: 0
+          exclusiveMinimum: true
+          example: 75.5
+          description: |
+            Required. Greater than 0, sent as a JSON number, at most 2
+            decimal places; omitted or null -> 422 `is not a number`.
+        stock:
+          type: integer
+          minimum: 0
+          example: 20
+          description: |
+            Required here (full replacement): an integer ≥ 0; omitted or
+            null -> 422 `is not a number`.
+        sku:
+          type: string
+          pattern: "^[A-Z0-9-]+$"
+          example: NEW-1
+          description: |
+            Required. Same charset and uppercasing rules as create; omitted
+            or null -> 422 `can't be blank`. Keeping the product's own SKU is
+            valid; taking a visible product's SKU -> 422 `has already been
+            taken`.
+        active:
+          type: boolean
+          description: |
+            Omitted -> keeps the product's current value (it never resets to
+            `true`). `active: null` or any non-boolean -> 422
+            `is not included in the list`.
+    Product:
+      type: object
+      description: The product exactly as serialized in every response.
+      required: [id, name, description, price, stock, sku, active, created_at, updated_at]
+      properties:
+        id:
+          type: integer
+          readOnly: true
+          example: 1
+        name:
+          type: string
+          minLength: 3
+          maxLength: 100
+          example: Mechanical Keyboard
+        description:
+          type: string
+          maxLength: 1000
+          example: Brown switches
+        price:
+          type: string
+          pattern: "^\\d+\\.\\d{2}$"
+          description: |
+            Decimal string with exactly 2 decimals (e.g. "49.99"); requests
+            send the price as a JSON number instead.
+          example: "49.99"
+        stock:
+          type: integer
+          minimum: 0
+          example: 12
+        sku:
+          type: string
+          pattern: "^[A-Z0-9-]+$"
+          description: Uppercase-normalized; unique among non-deleted products.
+          example: ABC-123
+        active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+          description: ISO-8601 UTC.
+          example: "2026-01-10T12:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: ISO-8601 UTC.
+          example: "2026-01-10T12:00:00Z"
+    ProductEnvelope:
+      type: object
+      description: The success envelope of show/create/update — a single product in `data`.
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/Product"
+    ProductListEnvelope:
+      type: object
+      description: The success envelope of the listing — products in `data`, pagination in `meta`.
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          description: The requested page, in the stable order `created_at DESC, id DESC`; empty on no match or an out-of-range page.
+          items:
+            $ref: "#/components/schemas/Product"
+        meta:
+          $ref: "#/components/schemas/PaginationMeta"
+    PaginationMeta:
+      type: object
+      required: [current_page, total_count, total_pages]
+      properties:
+        current_page:
+          type: integer
+          description: The requested page, echoed back (even when out of range).
+          example: 1
+        total_count:
+          type: integer
+          description: Total matching (visible, non-deleted) products.
+          example: 1
+        total_pages:
+          type: integer
+          description: Total pages at 10 items per page; 0 when nothing matches.
+          example: 1
+    Error:
+      type: object
+      description: |
+        The single error shape of every 4xx/5xx response; `details` appears
+        only on 422.
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              enum: [not_found, validation_failed, internal_error]
+            message:
+              type: string
+              description: Human-readable summary; a 500 is always the generic message and never exposes internals.
+            details:
+              type: object
+              description: |
+                Present only on 422 (`validation_failed`), keyed by the
+                failing field — or by the listing parameter name (`page`,
+                `q`, `active`) for malformed query parameters — with the
+                validation messages.
+              additionalProperties:
+                type: array
+                items:
+                  type: string

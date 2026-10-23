@@ -38,7 +38,7 @@ Rules:
 
 ## Tasks
 
-- [ ] **T1. The OpenAPI document: `backend/public/docs/openapi.yaml` (D-P40).**
+- [x] **T1. The OpenAPI document: `backend/public/docs/openapi.yaml` (D-P40).**
   One hand-written OpenAPI 3.0.3 YAML file per the plan's content skeleton:
   `info` (title, `version: 1.0.0`, the at-most-one audit note of 004 RF-8);
   `servers` with the compose-delivered dev base URL `http://localhost:3000`
