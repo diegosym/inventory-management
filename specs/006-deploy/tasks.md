@@ -69,7 +69,7 @@ Rules:
     `docker compose run --rm frontend npm test` (57),
     `docker compose exec frontend npm run build` — as one task-specific commit.
 
-- [ ] **T2. `production.rb`: three one-line adjustments (D-P55; RF-5, RF-7, edge
+- [x] **T2. `production.rb`: three one-line adjustments (D-P55; RF-5, RF-7, edge
   cases).** In `backend/config/environments/production.rb`, exactly three
   changes: (1) `public_file_server.headers` cache-control →
   `public, max-age=0, must-revalidate` (a merge must be visible immediately;
