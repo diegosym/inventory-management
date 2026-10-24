@@ -43,7 +43,7 @@ Rules:
 
 ## Tasks
 
-- [ ] **T1. Root multi-stage `Dockerfile` + `.dockerignore` — the single production
+- [x] **T1. Root multi-stage `Dockerfile` + `.dockerignore` — the single production
   image (D-P49, D-P53; RF-1, RF-2, RF-3, RF-4, RF-6, RF-7, NFR-2/C16).**
   New `Dockerfile` at the repo root per the plan's sketch: stage 1 `node:22`
   (`npm ci` from `frontend/package-lock.json`, `ARG VITE_API_BASE_URL` with the

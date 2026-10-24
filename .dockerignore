@@ -1,0 +1,11 @@
+# Build-context hygiene (spec 006, D-P49, C16): secrets and host artifacts
+# never reach the image or the build context.
+.git
+.env
+.env.*
+**/node_modules
+frontend/dist
+backend/tmp
+backend/log
+backend/config/master.key
+backend/config/credentials.yml.enc
