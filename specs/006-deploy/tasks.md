@@ -107,7 +107,7 @@ Rules:
     run clean and `docker compose ps` shows the dev stack unaffected (dev data
     intact) — verification recorded in the session, **no repo commit**.
 
-- [ ] **T4. `.env.example`: the two production-only variable names (D-P54; RF-4,
+- [x] **T4. `.env.example`: the two production-only variable names (D-P54; RF-4,
   NFR-2/C16).** Add `SECRET_KEY_BASE` (required at production boot — proven by
   the plan's boot evidence) and `RAILS_ENV=production` as **names with placeholder
   values** and a "production deploys only" comment, matching how `DATABASE_URL`
