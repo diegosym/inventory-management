@@ -117,7 +117,7 @@ Rules:
     production-only note, contains no real value, and `git diff --stat` shows
     `.env.example` as the only modified file — as one task-specific commit.
 
-- [ ] **T5. README: the deployment section (RF-8, C17; D-P50/D-P51/D-P56).**
+- [x] **T5. README: the deployment section (RF-8, C17; D-P50/D-P51/D-P56).**
   New section **"Despliegue (spec 006 — Render)"**: the public URL pattern (one
   origin: UI `/`, API `/api/v1/products`, docs `/docs`); the update flow (merge
   to `main` → automatic deploy, gated by 003's required `CI` check — no manual
