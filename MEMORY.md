@@ -104,6 +104,9 @@ Environment notes:
   2.6 and host Node is 13 — both unusable. Everything goes through compose (the
   documented `~/.local` Node installs are tooling-only fallbacks, see D-13/Lessons).
 - Docker Desktop must be running.
+- **Dev baseline:** 15 visible products (the 14 seeds + 1 user-created
+  `Default Stock Product` id 47, predating 2026-10-24 — do not assume 14 when
+  comparing counts).
 
 ## Decisions
 
