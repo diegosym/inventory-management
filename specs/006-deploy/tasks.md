@@ -86,7 +86,7 @@ Rules:
     untouched), and `docker compose exec backend bundle exec rspec` is green —
     as one task-specific commit. The header's live effect is proven in T3.
 
-- [ ] **T3. Local rehearsal of the whole production path, offline (plan's Test
+- [x] **T3. Local rehearsal of the whole production path, offline (plan's Test
   strategy; RF-1, RF-3, RF-4, RF-6, RF-7, D-P52/D-P55 mechanisms; no commit).**
   Before touching Render, prove the image, boot chain, seeds, serving, CORS, and
   cache policy against a throwaway PostgreSQL — exactly the plan's sequence,
@@ -144,7 +144,7 @@ Rules:
     task-specific commit. If T6/T7 verify measured values that differ (cold start,
     expiry), a small follow-up README commit records them (C17).
 
-- [ ] **T6. Render signup, provisioning, and first deploy (user action with the
+- [x] **T6. Render signup, provisioning, and first deploy (user action with the
   coordinator — D-P51 plan implications; RF-4, RF-5, NFR-4; no commit).**
   Done with the user, in the plan's order: (1) create the Render Hobby workspace
   **without adding a credit card** — if a card or paid plan is demanded, **STOP
@@ -172,7 +172,7 @@ Rules:
     every to-verify gate is confirmed or a STOP is reported — before `/sdd-validate
     006-deploy` runs; no repo commit.
 
-- [ ] **T7. External verification matrix and DoD battery (coordinator/user —
+- [x] **T7. External verification matrix and DoD battery (coordinator/user —
   D-P56; RF-1…RF-7, DoD, NFR-1, NFR-4, cold-start edge; no commit).** Run the
   plan's external matrix against the public URL: RF-1 (UI 200 production build —
   references `/assets/…` hashed files, **no** `/@vite/client`, **no** `localhost`;
@@ -215,6 +215,12 @@ docker compose exec backend bundle exec rspec     # 181 examples, must stay gree
 docker compose run --rm frontend npm test         # 57/57, unchanged (C7/NFR-1)
 docker compose exec frontend npm run build        # tsc + vite, unchanged
 ```
+
+Executed 2026-10-25 — all green: backend rspec **181 examples, 0 failures**,
+frontend suite **57/57**, `npm run build` green; external verification matrix
+**9/9** (T7, cold start measured **62.5 s ≤ 90 s** after spin-down) and **CI
+green on PRs #9, #10, and #11** → the gate found nothing else to change in the
+repo → verification only, **no commit** (003/004's rationale).
 
 The external legs (public URL, browser, redeploy, cold start) are T6/T7's
 evidence (D-P56).

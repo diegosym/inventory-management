@@ -1,6 +1,6 @@
 # Spec 006 — Deploy (Live deployment)
 
-Status: approved
+Status: implemented
 
 ## Context and goal
 
