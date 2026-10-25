@@ -4,6 +4,15 @@ Reto técnico Full Stack: aplicación web de **gestión de productos (CRUD)** co
 listado paginado, búsqueda, filtro por estado y formulario en modal. Todo corre
 con **Docker Compose** — sin instalar Ruby, PostgreSQL ni Node en el host.
 
+> **🔗 Enlaces directos para la revisión**
+>
+> - **Aplicación en producción:** <https://inventory-management-ab57.onrender.com>
+> - **Documentación interactiva (Swagger UI):** <https://inventory-management-ab57.onrender.com/docs>
+> - **API (JSON):** <https://inventory-management-ab57.onrender.com/api/v1/products>
+>
+> En local, tras `docker compose up -d --build`: UI en `http://localhost:5173` y
+> Swagger en `http://localhost:3000/docs` (pasos en «Cómo probar la aplicación»).
+
 ## Qué es la aplicación
 
 | Capa | Tecnología |
