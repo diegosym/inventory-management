@@ -13,9 +13,9 @@ Entry point and behavior contract for AI coding sessions.
 
 **Inventory Management** — Full Stack challenge: product CRUD with a Rails API
 (PostgreSQL) backend and a React + TypeScript + TailwindCSS frontend, everything
-running in Docker. **Core delivered: specs `001-backend-api` and `002-frontend-ui`
-are implemented, validated, and merged to `main`; the bonus specs `003`–`006` are
-pending (roadmap order in `specs/README.md`).**
+running in Docker. **Complete: all six specs (`001-backend-api` → `006-deploy`) are
+implemented, validated (`VEREDICTO: APROBADO`) and merged to `main` — core plus
+bonus; the app is live on Render (URL in `README.md`).**
 
 Do not assume tooling, commands, versions, or layout beyond what `MEMORY.md`
 documents.
@@ -90,9 +90,9 @@ order (`specs/README.md`): a spec starts only when the previous one is approved.
 
 ## Scope discipline
 
-The core (specs 001–002) is delivered; the bonus specs 003–006 follow the roadmap
-and start only when requested. Explicitly out-of-bounds until a spec says
-otherwise:
+All six specs (001–006) are delivered and merged; any future work starts with a
+new spec and its user gates, following the same roadmap rules. Explicitly
+out-of-bounds until a spec says otherwise:
 
 - Any architecture change or dependency outside the binding stack (C8)
 - Any feature not covered by an approved spec — including bonus items: they live in
