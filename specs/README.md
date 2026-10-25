@@ -27,14 +27,14 @@ specs/
 
 ## Roadmap (see MEMORY.md for the rationale)
 
-| Spec | Scope | When |
-|---|---|---|
-| `001-backend-api` | Product model, validations, 5 endpoints, pagination/search/filter, seeds, RSpec | Core — first |
-| `002-frontend-ui` | List, product form, delete with confirmation, states, Tailwind (extra libraries only if justified — C6) | Core — after 001 |
-| `003-ci` | GitHub Actions: RSpec + frontend tests (if present) + build | Bonus — simplest first |
-| `004-data-integrity` | Soft delete + change audit (together: same model, same endpoints) | Bonus |
-| `005-openapi` | API documentation | Bonus |
-| `006-deploy` | Live deployment | Bonus — last |
+| Spec | Scope | When | Status |
+|---|---|---|---|
+| `001-backend-api` | Product model, validations, 5 endpoints, pagination/search/filter, seeds, RSpec | Core — first | ✅ implemented — merged (PR #1) |
+| `002-frontend-ui` | List, product form, delete with confirmation, states, Tailwind (extra libraries only if justified — C6) | Core — after 001 | ✅ implemented — merged (PR #2) |
+| `003-ci` | GitHub Actions: RSpec + frontend tests (if present) + build | Bonus — simplest first | ✅ implemented — merged (PR #3) |
+| `004-data-integrity` | Soft delete + change audit (together: same model, same endpoints) | Bonus | ✅ implemented — merged (PR #5) |
+| `005-openapi` | API documentation | Bonus | ✅ implemented — merged (PR #7) |
+| `006-deploy` | Live deployment | Bonus — last | ✅ implemented — merged (PRs #9–#12) |
 
 Rules:
 

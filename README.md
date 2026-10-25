@@ -4,6 +4,15 @@ Reto técnico Full Stack: aplicación web de **gestión de productos (CRUD)** co
 listado paginado, búsqueda, filtro por estado y formulario en modal. Todo corre
 con **Docker Compose** — sin instalar Ruby, PostgreSQL ni Node en el host.
 
+> **🔗 Enlaces directos para la revisión**
+>
+> - **Aplicación en producción:** <https://inventory-management-ab57.onrender.com>
+> - **Documentación interactiva (Swagger UI):** <https://inventory-management-ab57.onrender.com/docs>
+> - **API (JSON):** <https://inventory-management-ab57.onrender.com/api/v1/products>
+>
+> En local, tras `docker compose up -d --build`: UI en `http://localhost:5173` y
+> Swagger en `http://localhost:3000/docs` (pasos en «Cómo probar la aplicación»).
+
 ## Qué es la aplicación
 
 | Capa | Tecnología |
@@ -46,6 +55,38 @@ con teclado.
 ├── specs/              # artefactos SDD: 001-backend-api, 002-frontend-ui, …
 └── MEMORY.md           # decisiones, comandos y contexto estable del proyecto
 ```
+
+## Arquitectura
+
+Un único código, dos perfiles de ejecución — **nada corre fuera de Docker** (D-1):
+
+**Desarrollo local** — `docker compose` con tres servicios:
+
+```
+navegador ──▶ frontend (Vite :5173 · dev server + HMR)
+                  │ fetch (CORS restringido a :5173)
+                  ▼
+              backend (Rails API :3000) ──▶ db (PostgreSQL 16 · volumen db_data)
+```
+
+**Producción (Render)** — una sola imagen multi-stage construida desde el `Dockerfile`
+de la raíz (stage 1: build de producción de Vite; stage 2: Rails + assets en `public/`):
+
+```
+navegador ──▶ imagen única (:10000 · $PORT)
+              ├── UI en `/` · API en `/api/v1/products` · docs en `/docs`  (un solo origen)
+              └── arranque: db:prepare db:seed ──▶ PostgreSQL gestionado (DATABASE_URL)
+```
+
+- **Un solo origen en producción** (D-P50): la UI y la API comparten dominio.
+- **Contratos**: responses con envelope `{ data }` / `{ data, meta }`; errores con
+  `{ error: { code, message, details } }`; las validaciones canónicas viven en el
+  modelo de Rails (C9) y el frontend las espeja exactamente (C14).
+- **CI/CD**: GitHub Actions corre las tres verificaciones en cada PR; el check `CI`
+  es requerido para mergear en `main`, y cada merge a `main` despliega en Render.
+- **Documentación viva**: OpenAPI servido en `/docs` con una suite anti-drift (57
+  ejemplos) que compara el documento con el código real en cada corrida de tests;
+  auditoría de cambios interna en la tabla `product_audits` (sin endpoints).
 
 ## Cómo arrancar todo
 
@@ -94,6 +135,43 @@ docker compose exec frontend npm run build
 
 Los comandos exactos de verificación viven en `MEMORY.md → Development
 commands`; todo se ejecuta vía compose, nunca Node ni Ruby en el host.
+
+## Cómo probar la aplicación
+
+### En local
+
+Con el stack arriba («Cómo arrancar todo»), abre **http://localhost:5173** y verifica:
+
+1. **Listado**: 14 productos de ejemplo, 10 por página, «Page 1 of 2».
+2. **Búsqueda**: `usb` → 3 coincidencias (hay ~300 ms de debounce) · `zzzz` → «No
+   products match your search.» · borra el texto para volver al listado completo.
+3. **Filtro**: `Active only` / `Inactive only` cambia el listado (se resuelve en el
+   servidor, nunca en el navegador).
+4. **Crear**: *New product* → rellena nombre (mínimo 3), precio `49.99`, stock y SKU
+   (`abc-123` se guarda como `ABC-123`) → *Save* → **diálogo de confirmación** →
+   «Product saved.» y el producto aparece en la tabla.
+5. **Validaciones**: precio `9.999` muestra «must have at most 2 decimal places» y
+   bloquea el envío; al editar con un SKU ya usado, el servidor devuelve errores
+   bajo cada campo (422 con `details`).
+6. **Editar**: *Edit* → el precio se conserva byte-idéntico (`49.99`, sin artefactos
+   binarios) → *Save*.
+7. **Borrar**: *Delete* → confirmación que nombra el producto → «Product deleted.»;
+   el producto desaparece de todos los listados (borrado lógico) y **su SKU queda
+   libre** para reusarse en uno nuevo.
+8. **API directa**: `curl http://localhost:3000/api/v1/products?page=1` → `{ data, meta }`.
+
+### En producción
+
+Con la app desplegada en **https://inventory-management-ab57.onrender.com**:
+
+- Repite exactamente los mismos pasos en la URL pública (la UI y la API comparten
+  origen; no hay nada que configurar).
+- **API**: `curl https://inventory-management-ab57.onrender.com/api/v1/products?page=1`.
+- **Docs interactivas**: abre `…/docs` → expande una operación → *Try it out* →
+  *Execute*: la petición sale contra la API desplegada y pinta la respuesta real.
+- **Suspensión por inactividad**: Render suspende el servicio gratuito tras ~30 min
+  sin tráfico; el primer request tarda hasta ~62 s (medido; límite 90 s) y responde
+  200. El resto de límites y la expiración de la BD (30 días) están en «Despliegue».
 
 ## Integración continua (CI)
 
@@ -272,8 +350,8 @@ la consola Rails (`docker compose exec backend bin/rails console`).
 
 ## Decisiones Técnicas
 
-Fuente completa: `MEMORY.md` (D-1…D-12) y los planes de `specs/001` y
-`specs/002` (D-P*). Las esenciales:
+Fuente completa: `MEMORY.md` (D-1…D-21) y los planes de cada spec (D-P*).
+Las esenciales:
 
 - **100% Docker (D-1):** compose levanta `db` + `backend` + `frontend`; el host
   no necesita Ruby, PostgreSQL ni Node. Descartado instalar toolchains con brew.
@@ -314,10 +392,14 @@ Fuente completa: `MEMORY.md` (D-1…D-12) y los planes de `specs/001` y
   partir de ahí, con show/hide CSS; sin detección de viewport en JS.
 - **Entrega iterativa (D-4):** core (specs 001–002) primero; los bonus se
   abordan después y por separado.
+- **Decisiones de las specs 003–006 (D-14…D-21):** CI con los mismos comandos de
+  local (D-14) · actor de auditoría `"system"` (D-15) · Swagger UI vendado, sin
+  CDN (D-18) · servidor OpenAPI relativo (D-21) · despliegue en Render con plan
+  gratis verificado (D-20) — el detalle y el razonamiento, en `MEMORY.md`.
 
 ## Mejoras Futuras
 
-Roadmap de bonus (`specs/README.md`), pendientes y entregables por separado:
+Roadmap de bonus completo (`specs/README.md`) — todos los incrementos entregados:
 
 - **003 — CI:** entregado — el workflow `.github/workflows/ci.yml` ejecuta
   RSpec, la suite frontend y el build en cada push a `main` y en cada PR, y el
