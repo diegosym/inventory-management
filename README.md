@@ -34,7 +34,11 @@ con teclado.
 │       ├── hooks/      # useProducts, useDebouncedValue
 │       ├── components/ # lista, fila/tarjeta, modal, diálogos, notificaciones
 │       └── __tests__/  # suite Vitest + RTL
-├── docker-compose.yml  # servicios db, backend y frontend
+├── Dockerfile          # spec 006: imagen única de producción (multi-stage:
+│   │                   #   build de Vite + API Rails; CMD con db:prepare db:seed)
+├── .dockerignore       # spec 006: secretos (.env, keys) y artefactos fuera
+│   │                   #   del contexto de build
+├── docker-compose.yml  # servicios db, backend y frontend (solo desarrollo/CI)
 ├── .env.example        # plantilla de variables de entorno (sin secretos)
 ├── .github/
 │   └── workflows/ci.yml # CI (spec 003): RSpec, Vitest y build en push/PR a main
@@ -117,6 +121,74 @@ propietario del repositorio: *Settings → Branches → protección de `main` �
 Require a pull request before merging* y *Require status checks to pass* →
 añadir `CI` (sin bypass de administradores). Comportamiento resultante: un PR
 con `CI` fallido o ausente no puede mergear en `main`; con `CI` verde, sí puede.
+
+## Despliegue (spec 006 — Render)
+
+La aplicación se despliega en **Render** (decisión D-20; plan de
+`specs/006-deploy`) desde una única imagen de producción construida en la raíz
+del repo (`Dockerfile`). Un **solo origen público** — la URL asignada al
+servicio web, patrón `*.onrender.com` (la URL real se añadirá aquí tras el
+primer deploy) — sirve todo:
+
+| | Ruta |
+|---|---|
+| UI (build de producción de Vite) | `/` |
+| API | `/api/v1/products` |
+| Documentación OpenAPI (Swagger UI) | `/docs` |
+
+**Actualización (sin pasos manuales):** cada merge a `main` dispara en Render
+el build de la imagen y el deploy automático, condicionado por el check
+requerido `CI` de la spec 003 (ver «Integración continua (CI)»): un PR con `CI`
+rojo no puede mergear y por tanto nunca llega a producción; los commits en
+ramas de feature o PRs sin mergear no despliegan nada.
+
+**Provisioning desde cero** (orden del plan):
+
+1. Cuenta en Render con workspace **Hobby sin añadir tarjeta** — si Render
+   exige una tarjeta o un plan de pago, el trabajo se detiene y vuelve al
+   usuario (NFR-4); nunca hay un upgrade silencioso.
+2. Conectar el repositorio de GitHub: Auto Deploy activo, rama `main` como
+   única rama de deploy y **preview environments de PR desactivados**.
+3. Crear en un mismo proyecto el **servicio web** (runtime Docker, raíz del
+   `Dockerfile`) y **PostgreSQL gestionado**.
+4. Variables de entorno **antes del primer build** — solo **nombres** aquí; los
+   valores viven únicamente en el panel de Render (C16): `RAILS_ENV`,
+   `DATABASE_URL` (inyectada por Render), `FRONTEND_ORIGIN`, `VITE_API_BASE_URL`
+   (en build, igual a la URL pública) y `SECRET_KEY_BASE` (generado por el
+   usuario, p. ej. `openssl rand -hex 64`). Todos documentados también como
+   nombres en `.env.example`.
+5. Health check del servicio web: `GET /api/v1/products` (reutiliza una ruta
+   existente; cero rutas nuevas).
+6. Primer deploy desde `main` con `CI` verde; el arranque ejecuta
+   `db:prepare db:seed` (las mismas órdenes que dev y CI) y la URL abre ya
+   poblada con el dataset de demostración.
+
+**Límites del tier gratuito** (cifras verificadas en render.com/pricing el
+2026-10-24):
+
+- **5 GB** de bandwidth al mes (después, $0.15/GB).
+- **500 minutos de build** al mes (después, $5/1K).
+- **Compute Free:** 512 MB de RAM y <1 CPU.
+- **Postgres Free:** 256 MB de RAM y 100 conexiones.
+- **Sin tarjeta en el signup → sin cargos posibles** (el único cargo ligado a
+  tarjeta que apunta Render es un $1 reembolsable tras añadirla).
+
+**Gates de la plataforma aún abiertos** (comportamientos que solo se confirman
+en el signup y el primer deploy; se documentarán con los valores medidos cuando
+T6 y T7 de la spec 006 los cierren):
+
+- **Spin-down por inactividad y cold start:** la URL debe responder 200 dentro
+  del límite fijo de **90 s** tras un spin-down (D-P56); el tiempo real medido
+  se añadirá aquí.
+- **Expiración del Postgres free** (~90 días asumidos; RF-2 garantiza la
+  persistencia mientras viva la instancia).
+- **Env como Docker build args:** Render debe pasar `VITE_API_BASE_URL` al
+  build de la imagen; si no lo hace, es un STOP con decisión del usuario
+  (RF-3).
+- **Release command y campos exactos del health check** (path/interval/
+  threshold): la cadena del `CMD` del `Dockerfile` sigue siendo el mecanismo;
+  si Render exigiera migraciones en un release command, se reporta, no se cambia
+  en silencio (D-P52).
 
 ## API (resumen)
 
@@ -266,8 +338,11 @@ Roadmap de bonus (`specs/README.md`), pendientes y entregables por separado:
   Swagger UI en `/docs` con assets vendorizados sin CDN y suite anti-drift
   que verifica el documento contra el código en cada ejecución de la suite
   backend (ver «Documentación de la API (OpenAPI)»).
-- **006 — Deploy:** despliegue funcional (el proveedor es una decisión abierta,
-  OD-3).
+- **006 — Deploy:** entregado — despliegue en Render desde la imagen única de
+  producción de la raíz (`Dockerfile`): un solo origen público sirve la UI en
+  `/`, la API en `/api/v1/products` y la documentación en `/docs`, y cada merge
+  a `main` con el check `CI` verde despliega automáticamente, sin pasos
+  manuales (ver «Despliegue (spec 006 — Render)»).
 
 Limitaciones conocidas (alcance actual, no bugs):
 
@@ -275,7 +350,8 @@ Limitaciones conocidas (alcance actual, no bugs):
   registra el actor fijo `"system"` (OD-2 cerrada por D-15, spec 004), listo
   para un actor real si algún día llega la auth.
 - **Paginación fija de 10 por página** — sin parámetro `per_page`.
-- **El frontend se sirve con el dev server de Vite** (HMR incluido); no hay
-  build de producción ni servidor estático — eso llega con el spec 006.
+- **En local la UI corre con el dev server de Vite** (HMR incluido), no con el
+  build de producción: en producción la sirve Rails desde `public/`, en el
+  mismo origen que la API (ver «Despliegue (spec 006 — Render)»).
 - **Sin caché de cliente ni modo offline** — cada interacción va al servidor.
 - **Sin i18n ni dark mode.**

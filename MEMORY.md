@@ -53,7 +53,7 @@ validated, and merged to `main`.**
 | `003-ci` | GitHub Actions: RSpec + frontend tests (if present) + build | **done — merged to `main` (PR #3, `c44e83b`)**: validated `VEREDICTO: APROBADO` (T1–T5: live runs incl. run-all drill, required check `CI` active, push-trigger run green) |
 | `004-data-integrity` | Soft delete + change audit | **done — merged to `main` (PR #5, `372f995`)**: validated `VEREDICTO: APROBADO` (124/0; 1 authorized 001 adaptation; frontend untouched; push-trigger CI green) |
 | `005-openapi` | API documentation | **done — merged to `main` (PR #7, `f334bab`)**: validated `VEREDICTO: APROBADO` (181/0 incl. 57 anti-drift; UI self-contained; push-trigger CI green) |
-| `006-deploy` | Live deployment | pending (bonus) |
+| `006-deploy` | Live deployment | spec + plan **approved** (D-20 — **cierra OD-3**: Render, free $0 verificado con captura del usuario) — drafting tasks |
 
 A spec starts only when the previous one is `VEREDICTO: APROBADO`.
 
@@ -104,6 +104,9 @@ Environment notes:
   2.6 and host Node is 13 — both unusable. Everything goes through compose (the
   documented `~/.local` Node installs are tooling-only fallbacks, see D-13/Lessons).
 - Docker Desktop must be running.
+- **Dev baseline:** 15 visible products (the 14 seeds + 1 user-created
+  `Default Stock Product` id 47, predating 2026-10-24 — do not assume 14 when
+  comparing counts).
 
 ## Decisions
 
@@ -236,12 +239,30 @@ Environment notes:
   it" — the document documents the code. **`PUT` is unchanged**: omitted required
   field → 422 (full replacement). Verified live during T1's stop (C2), settled by
   the user; no `/sdd-change` — this note is the erratum.
+- **D-20 (closes OD-3; user decisions, spec 006):** (a) the deploy provider is
+  **Render** — single provider for the Rails API, PostgreSQL, and the static
+  frontend served by the same app (one origin), auto-deploy from `main` only;
+  originally Railway, **discarded when its registrations closed (security
+  incident 2026-10-24, user-verified)**; Vercel stays discarded (no native Rails
+  runtime/bundled Postgres → would force a provider split). (b) Budget = **free
+  tier, no card — VERIFIED by the user from render.com/pricing 2026-10-24**:
+  Hobby $0 (5 GB bandwidth/mo, 500 build mins, 2 domains, ≤25 services), Compute
+  Free $0 (512 MB RAM, <1 CPU), Postgres Free $0 (256 MB, 100 conns), Docker
+  builds included; the only card flow is the refundable $1 check → **without a
+  card added, no charges are possible**; if Render ever demands a card/plan for
+  the deploy → **STOP and return to the user** (NFR-4). Residual overage risks
+  (bandwidth $0.15/GB, build mins $5/1K) documented in the README (RF-8).
+  (c) The health check **reuses an already-served route** (`GET
+  /api/v1/products`) — **zero new routes** (005 RF-6(a) and CI stay intact).
+  (d) Cold-start verification bound **90 s**; `SECRET_KEY_BASE` via env only
+  (verified live: Rails 8.1 boot without credentials raises ArgumentError).
+  Recorded in `specs/006-deploy/spec.md` + `plan.md` (D-P49…D-P56).
 
 ## Open decisions (OPEN DECISION)
 
-- **OD-3.** Deploy provider (spec 006): Railway vs Render vs Vercel. Deferred to 006.
 - ~~OD-1.~~ **Closed by D-6** (SKU charset: uppercase + digits + hyphens on both sides).
 - ~~OD-2.~~ **Closed by D-15** (audit actor: the constant `"system"`, user decision).
+- ~~OD-3.~~ **Closed by D-20** (deploy provider: Render, free tier verified $0 — Railway discarded when its registrations closed).
 
 ## Terminology
 
