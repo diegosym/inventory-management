@@ -134,8 +134,11 @@ documented (C10, C11).
 - NFR-1: Verification uses only the commands in `MEMORY.md → Development commands`;
   the stack is unchanged (C8); no new dependency unless the plan justifies it and
   `MEMORY.md` records it before code (C6) — a hand-written document plus a parsing test is valid.
-- NFR-2: The document is machine-readable and well-formed OpenAPI 3, and describes
-  the development API base URL actually delivered by compose.
+- NFR-2: The document is machine-readable and well-formed OpenAPI 3, and its
+  `servers` entry is **relative** — `servers: [{ url: "/" }]`, "the server that
+  serves the document" — so the base is never invented: it resolves to the
+  serving origin, i.e. in development the base URL docker compose actually
+  delivers (`http://localhost:3000`) and in production the deployed origin.
 
 ## Edge cases
 
@@ -156,6 +159,11 @@ documented (C10, C11).
 - The UI renders the RF-4 served document (one source of truth), serves its own
   assets (no external network in the browser), and calls the API same-origin from
   the backend origin (CORS/D-9 untouched); a UI failure never affects the API.
+- An **absolute** `servers` URL (e.g. `http://localhost:3000`) makes try-it-out
+  target the wrong origin wherever the document is served from another origin
+  (production): that is an NFR-2 defect. Because RF-6(g) keeps the served copy
+  byte-identical to the committed file, the correction is made in the committed
+  document — no UI-side override, no second copy of the base.
 
 ## Out of scope
 

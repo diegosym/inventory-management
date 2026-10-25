@@ -28,7 +28,7 @@ route-surface check must filter those out — D-P44).
 | File | Responsibility |
 |---|---|
 | `backend/public/docs/openapi.yaml` (new) | The document (D-P40): OpenAPI 3.0.3 in YAML describing the real API per RF-1…RF-3, with one worked example per endpoint and per error case (RF-3), machine-readable for the replay of RF-6(f) (D-P48). Served raw at `/docs/openapi.yaml` (D-P41). |
-| `backend/public/docs/index.html` (new) | The interactive UI page served at `/docs` (D-P42): a small static HTML that loads only the vendored same-origin bundle/CSS and configures `SwaggerUIBundle({ url: '/docs/openapi.yaml', tryItOutEnabled: true, … })` — the served document is the only source (RF-5); no inline rendering logic beyond the config. |
+| `backend/public/docs/index.html` (new) | The interactive UI page served at `/docs` (D-P42): a small static HTML that loads only the vendored same-origin bundle/CSS and configures `SwaggerUIBundle({ url: '/docs/openapi.yaml', tryItOutEnabled: true, … })` — the served document is the only source (RF-5), **including its relative `servers`: the page config carries no `servers` override** (the base comes from the document per NFR-2); no inline rendering logic beyond the config. |
 | `backend/public/docs/swagger-ui/{swagger-ui-bundle.js, swagger-ui-standalone-preset.js, swagger-ui.css}` (new — vendored assets) | The UI engine, committed to the repo at a pinned version (D-P42). Fetched **once** from the official `swagger-ui-dist` npm tarball via the documented `docker run --rm -v "$PWD":/w -w /w node:22 …` pattern (host Node is unusable — MEMORY lesson); no `package.json`/lockfile/Gemfile change (C6 — see the flagged decision below). |
 | `backend/spec/requests/openapi_spec.rb` (new) | The anti-drift verification of RF-6(a)…(g) plus the served-doc and UI-availability checks (D-P43…D-P48). Runs in the ordinary backend suite → RF-7 is satisfied by construction (no CI change). |
 | `README.md` (modify — root README, the documented deliverable) | RF-8: a new section **"Documentación de la API (OpenAPI)"** — repository location of the document, served URL, UI URL, how the anti-drift suite keeps it honest, and the pinned Swagger UI version + how the assets were obtained; add `backend/public/docs/` to the structure tree; flip the "005 — OpenAPI" bullet under **Mejoras Futuras** to entregado (C17 coherence). |
@@ -56,8 +56,11 @@ existing spec file** (C7: the current 124 backend examples stay green untouched)
   dependency, and it would replace the "committed file verified against code"
   approach the spec fixes).
 - **Content skeleton:** `info` (title, `version: 1.0.0`, description noting the
-  audit table has no endpoints — at most a note, per 004 RF-8); `servers` with
-  the compose-delivered dev base URL `http://localhost:3000` (NFR-2); the five
+  audit table has no endpoints — at most a note, per 004 RF-8); `servers` as a
+  **relative server** — `servers: [{ url: '/', description: 'The server that
+  serves this document' }]` (NFR-2): the base is never invented, it resolves to
+  the serving origin — in dev the compose base URL `http://localhost:3000`, in
+  production the deployed origin; the five
   operations with the `:id` path parameter, the listing parameters `page` / `q` /
   `active` described with the exact C11 semantics (10/page default page 1,
   case-insensitive `name` substring, active filter, stable order, all

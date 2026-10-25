@@ -41,8 +41,10 @@ Rules:
 - [x] **T1. The OpenAPI document: `backend/public/docs/openapi.yaml` (D-P40).**
   One hand-written OpenAPI 3.0.3 YAML file per the plan's content skeleton:
   `info` (title, `version: 1.0.0`, the at-most-one audit note of 004 RF-8);
-  `servers` with the compose-delivered dev base URL `http://localhost:3000`
-  (NFR-2); the five operations with the `:id` path parameter; listing parameters
+  `servers` as a relative server `url: "/"` — the server that serves the
+  document (NFR-2): in dev it resolves to the compose base URL
+  `http://localhost:3000`, in production to the deployed origin; the five
+  operations with the `:id` path parameter; listing parameters
   `page` / `q` / `active` with the exact 001 RF-9–RF-12 semantics (10/page
   default page 1, case-insensitive `name` substring, active filter, stable
   order, all server-side — C11); the `{ "product": { … } }` request wrapper; the
@@ -60,9 +62,9 @@ Rules:
   the one form RF-6(f) then replays (D-P48). No security schemes. RF-1, RF-2,
   RF-3, NFR-2, D-17 (500 included and documented as implemented)
   - Done when: the file exists at that path and parses as OpenAPI 3.0.3 with the
-    five documented paths — verified inside the stack (e.g.
-    `docker compose exec backend bin/rails runner 'd = YAML.safe_load(File.read(Rails.root.join("public","docs","openapi.yaml"))); puts d["openapi"]; puts d["paths"].keys'`
-    prints `3.0.3` and the five paths) — and, with `docker compose up -d
+    five documented paths and a relative server — verified inside the stack (e.g.
+    `docker compose exec backend bin/rails runner 'd = YAML.safe_load(File.read(Rails.root.join("public","docs","openapi.yaml"))); puts d["openapi"]; puts d["paths"].keys; puts d["servers"].map { |s| s["url"] }'`
+    prints `3.0.3`, the five paths, and `/` — and, with `docker compose up -d
     --build`, `curl -s -o /dev/null -w '%{http_code}\n'
     http://localhost:3000/docs/openapi.yaml` answers `200` with content type
     `text/yaml` (`curl -sI`) and
@@ -84,7 +86,8 @@ Rules:
   `backend/public/docs/index.html`: a small static page loading **only**
   same-origin asset paths and configuring
   `SwaggerUIBundle({ url: '/docs/openapi.yaml', tryItOutEnabled: true, … })` —
-  the **served** document as the only source (RF-5), no inline rendering logic
+  the **served** document as the only source (RF-5) **including its relative
+  `servers` — no `servers` key in the page config**, no inline rendering logic
   beyond the config, **no CDN/external reference**. No `package.json`, lockfile,
   or `Gemfile` change: vendored files, not dependencies (C6 — D-18 recorded by
   the coordinator in `MEMORY.md` before code). If the tarball pattern fails,
