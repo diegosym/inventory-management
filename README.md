@@ -13,6 +13,28 @@ con **Docker Compose** — sin instalar Ruby, PostgreSQL ni Node en el host.
 > En local, tras `docker compose up -d --build`: UI en `http://localhost:5173` y
 > Swagger en `http://localhost:3000/docs` (pasos en «Cómo probar la aplicación»).
 
+## Metodología de desarrollo
+
+Esta aplicación fue desarrollada con **OpenCode** usando el modelo **MiMo-V2.6-Flash**
+mediante un sistema multi-agente de desarrollo guiado por especificaciones (SDD).
+
+El proceso no fue "pedirle código a la IA". Diseñé un flujo con 4 agentes
+especializados (coordinator, planner, implementer, reviewer), cada uno con permisos
+acotados sobre el filesystem, siguiendo el ciclo:
+
+**Constitution → Spec → Clarification → Plan → Tasks → Implementation → Validation**
+
+Mi rol fue diseñar el sistema, definir los 17 principios de `docs/constitution.md`,
+elegir el stack, resolver cada decisión abierta y aprobar cada spec y plan antes de
+que se escribiera código. La IA redactó, implementó y validó; yo dirigí y decidí.
+
+El repositorio conserva toda la trazabilidad: `specs/` con spec/plan/tasks por
+incremento, `MEMORY.md` con las 21 decisiones registradas y su razonamiento,
+`docs/constitution.md` con los principios que gobernaron las 6 specs, y `.opencode/`
+con los agentes, comandos y skills.
+
+**→ Ver el proceso completo en [`AI_PROCESS.md`](./AI_PROCESS.md)**
+
 ## Qué es la aplicación
 
 | Capa | Tecnología |
@@ -397,59 +419,24 @@ Las esenciales:
   CDN (D-18) · servidor OpenAPI relativo (D-21) · despliegue en Render con plan
   gratis verificado (D-20) — el detalle y el razonamiento, en `MEMORY.md`.
 
-## Mejoras Futuras
+## Mejoras futuras
 
-Roadmap de bonus completo (`specs/README.md`) — todos los incrementos entregados:
+El reto está completo (6/6 specs entregados — ver «Metodología de desarrollo» y
+`specs/README.md`). Esto es lo que **añadiría valor a la solución actual**:
 
-- **003 — CI:** entregado — el workflow `.github/workflows/ci.yml` ejecuta
-  RSpec, la suite frontend y el build en cada push a `main` y en cada PR, y el
-  check `CI` es requerido para mergear en `main` (ver «Integración continua
-  (CI)»).
-- **004 — Integridad de datos:** entregado — `DELETE` como borrado lógico
-  (la fila permanece, invisible en todos los endpoints) y auditoría de cambios
-  en la tabla interna `product_audits` con actor `"system"` (ver «Integridad
-  de datos»).
-- **005 — OpenAPI:** entregado — documento OpenAPI 3.0.3 escrito a mano en
-  `backend/public/docs/openapi.yaml` (servido en `/docs/openapi.yaml`), UI
-  Swagger UI en `/docs` con assets vendorizados sin CDN y suite anti-drift
-  que verifica el documento contra el código en cada ejecución de la suite
-  backend (ver «Documentación de la API (OpenAPI)»).
-- **006 — Deploy:** entregado — despliegue en Render desde la imagen única de
-  producción de la raíz (`Dockerfile`): un solo origen público sirve la UI en
-  `/`, la API en `/api/v1/products` y la documentación en `/docs`, y cada merge
-  a `main` con el check `CI` verde despliega automáticamente, sin pasos
-  manuales (ver «Despliegue (spec 006 — Render)»).
-
-Limitaciones conocidas (alcance actual, no bugs):
-
-- **Sin autenticación** — fuera de alcance por el enunciado; la auditoría
-  registra el actor fijo `"system"` (OD-2 cerrada por D-15, spec 004), listo
-  para un actor real si algún día llega la auth.
-- **Paginación fija de 10 por página** — sin parámetro `per_page`.
-- **En local la UI corre con el dev server de Vite** (HMR incluido), no con el
-  build de producción: en producción la sirve Rails desde `public/`, en el
-  mismo origen que la API (ver «Despliegue (spec 006 — Render)»).
-- **Sin caché de cliente ni modo offline** — cada interacción va al servidor.
-- **Sin i18n ni dark mode.**
-
-## Metodología de desarrollo
-
-Esta aplicación fue desarrollada con **OpenCode** usando el modelo **MiMo-V2.6-Flash**
-mediante un sistema multi-agente de desarrollo guiado por especificaciones (SDD).
-
-El proceso no fue "pedirle código a la IA". Diseñé un flujo con 4 agentes
-especializados (coordinator, planner, implementer, reviewer), cada uno con permisos
-acotados sobre el filesystem, siguiendo el ciclo:
-
-**Constitution → Spec → Clarification → Plan → Tasks → Implementation → Validation**
-
-Mi rol fue diseñar el sistema, definir los 17 principios de `docs/constitution.md`,
-elegir el stack, resolver cada decisión abierta y aprobar cada spec y plan antes de
-que se escribiera código. La IA redactó, implementó y validó; yo dirigí y decidí.
-
-El repositorio conserva toda la trazabilidad: `specs/` con spec/plan/tasks por
-incremento, `MEMORY.md` con las 21 decisiones registradas y su razonamiento,
-`docs/constitution.md` con los principios que gobernaron las 6 specs, y `.opencode/`
-con los agentes, comandos y skills.
-
-**→ Ver el proceso completo en [`AI_PROCESS.md`](./AI_PROCESS.md)**
+- **Autenticación y autorización**: la API es pública y la auditoría registra el
+  actor genérico `"system"` (D-15); con sesiones, cada cambio quedaría atribuido a
+  un usuario real (lo que cerraría la antigua OD-2) y las mutaciones podrían
+  protegerse frente a clientes anónimos.
+- **Restauración de productos**: el borrado lógico ya conserva todos los datos
+  (visibles vía `Product.unscoped`); añadir la acción «restaurar» en UI y API sería
+  un cambio directo.
+- **Límites de uso de la API**: rate limiting y protección contra abuso — hoy
+  cualquier cliente puede crear y editar productos sin autenticación ni cuota.
+- **Retención de la auditoría**: la tabla `product_audits` crece sin límite;
+  convendría purga/retención de registros antiguos y exportación.
+- **E2E de navegador en CI**: hoy la UI se prueba con jsdom + smoke manual;
+  automatizar los flujos completos (p. ej. Playwright) añadiría cobertura de la UI
+  real en cada PR.
+- **Observabilidad y UX**: métricas/uptime/alertas de Render y logging estructurado;
+  en interfaz, refresco automático del listado, dark mode e i18n.
