@@ -18,21 +18,17 @@ validated, and merged to `main`.**
   (9 `/sdd-*` commands, 4 agents, 3 skills: `sdd`, `ruby-rails`,
   `vercel-react-best-practices`), `.agents/skills/agent-browser` (D-13),
   `docs/Reto técnico.pdf` (source of truth, C2), `.gitignore`.
-- **Next (session 2026-10-25):** spec **006-deploy — T1…T5 committed; T6 DONE
-  with the user; T7 matrix 8/9 green**. Render Hobby $0, **no card ever
-  requested** (NFR-4 met); live at `https://inventory-management-ab57.onrender.com`.
-  **Gates closed in practice (T6):** Render DOES pass service env as Docker build
-  args (the RF-3 guard passed once `VITE_API_BASE_URL` was set) · `PORT` honored
-  (`Listening on [::]:10000`) · Docker Command empty → image CMD runs
-  (`db:prepare db:seed && puma`) · no release command demanded (D-P52) ·
-  **Postgres Free expires after 30 days** (form 2026-10-25 — not ~90d) ·
-  feature-branch push deploys nothing (RF-5, verified in Events). **T7 rows
-  green:** RF-1…RF-7 + NFR-1, incl. the controlled resurrection proof (ids 3→17,
-  8→18; UI-created id 16 survives redeploy). Minor note: Swagger 5.34
-  `OperationNotFoundError` in the /docs console after try-it-out (non-blocking).
-  **Remaining: the cold-start row** (user keeps hands off the URL for 30 min →
-  measured `curl --max-time 90`) → README follow-up commit (30-day expiry +
-  measured cold start, T5 rule) → `/sdd-validate 006-deploy` → PR.
+- **Next (session 2026-10-25):** 🏁 **PROJECT COMPLETE — all 6 specs
+  implemented, validated (`VEREDICTO: APROBADO`) and merged to `main`**; specs
+  001–005 untouched by 006 (suites 181/0 · 57/57 · build · CI green on every
+  PR). Spec 006: T1–T7 all `[x]`, closed in `25ea1a4`; production live at
+  `https://inventory-management-ab57.onrender.com` (Render Hobby $0, no card);
+  T7 matrix 9/9 incl. cold start 62.5 s ≤ 90 s; RF-7 corrected in two approved
+  rounds (config override ignored by Swagger 5.34 → relative server, D-21).
+  **Nothing in flight.** Non-blocking leftovers recorded for a possible future
+  session: optional anti-drift assertion for `servers[0].url == "/"`; the
+  cosmetic intermittent swagger-ui `OperationNotFoundError` note; session
+  report pending in-chat.
 
 ## Key definitions (what is settled)
 
@@ -62,7 +58,7 @@ validated, and merged to `main`.**
 | `003-ci` | GitHub Actions: RSpec + frontend tests (if present) + build | **done — merged to `main` (PR #3, `c44e83b`)**: validated `VEREDICTO: APROBADO` (T1–T5: live runs incl. run-all drill, required check `CI` active, push-trigger run green) |
 | `004-data-integrity` | Soft delete + change audit | **done — merged to `main` (PR #5, `372f995`)**: validated `VEREDICTO: APROBADO` (124/0; 1 authorized 001 adaptation; frontend untouched; push-trigger CI green) |
 | `005-openapi` | API documentation | **done — merged to `main` (PR #7, `f334bab`)**: validated `VEREDICTO: APROBADO` (181/0 incl. 57 anti-drift; UI self-contained; push-trigger CI green) |
-| `006-deploy` | Live deployment | spec + plan **approved** (D-20 — **cierra OD-3**: Render, free $0 verificado con captura del usuario) — drafting tasks |
+| `006-deploy` | Live deployment | **done — merged to `main` (PRs #9–#11)**: validated `VEREDICTO: APROBADO` (2 vueltas; RF-7 fixed via D-21) · live at `https://inventory-management-ab57.onrender.com` |
 
 A spec starts only when the previous one is `VEREDICTO: APROBADO`.
 
@@ -239,6 +235,23 @@ Environment notes:
   no longer auto-registers — `index.html` must pass
   `presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset]` (found by
   the T6 browser smoke, fixed in `c173a3f`).
+- **D-21 (005 NFR-2 mechanism correction, user decision during 006 validation):**
+  the OpenAPI document uses a **relative server** — `servers: [{ url: '/',
+  description: 'The server that serves this document' }]` — never an absolute
+  URL. Context: the original `servers: http://localhost:3000` sent try-it-out to
+  the developer's machine in production (006 RF-7 broken; caught by the reviewer
+  — the coordinator's first prod try-it-out had "passed" only because localhost
+  was running locally); a config override in `index.html` was verified live to be
+  **ignored by Swagger 5.34**, so the canonical fix landed in the yaml (relative
+  resolves to the serving origin: dev `http://localhost:3000`, prod the deployed
+  origin). Changes: yaml `servers` block (`99a20e0`) + `/sdd-change` on
+  `specs/005-openapi/{spec (NFR-2 + edge), plan, tasks}` (`71ab152`); anti-drift
+  checks (a)–(g) untouched (none validates `servers`); byte-identity intact —
+  verified in prod with Request URL = the deployed origin. Minor note (reviewer,
+  non-blocking): swagger-ui 5.34 intermittently logs
+  `OperationNotFoundError: get_api_v1_products` on Execute (an id that is not in
+  the document) — cosmetic, no functional impact; optional hardening left open:
+  assert `servers[0].url == "/"` in the anti-drift suite.
 - **D-19 (spec 005 RF-2 erratum, user decision during T1):** in **`POST`**, the
   genuinely required fields are **`name`, `sku`, `price`** — `stock` is
   **optional with column default `0`** (sending `null` → 422 `"is not a number"`).
