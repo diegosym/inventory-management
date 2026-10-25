@@ -349,3 +349,25 @@ Limitaciones conocidas (alcance actual, no bugs):
   mismo origen que la API (ver «Despliegue (spec 006 — Render)»).
 - **Sin caché de cliente ni modo offline** — cada interacción va al servidor.
 - **Sin i18n ni dark mode.**
+
+## Metodología de desarrollo
+
+Esta aplicación fue desarrollada con **OpenCode** usando el modelo **MiMo-V2.6-Flash**
+mediante un sistema multi-agente de desarrollo guiado por especificaciones (SDD).
+
+El proceso no fue "pedirle código a la IA". Diseñé un flujo con 4 agentes
+especializados (coordinator, planner, implementer, reviewer), cada uno con permisos
+acotados sobre el filesystem, siguiendo el ciclo:
+
+**Constitution → Spec → Clarification → Plan → Tasks → Implementation → Validation**
+
+Mi rol fue diseñar el sistema, definir los 17 principios de `docs/constitution.md`,
+elegir el stack, resolver cada decisión abierta y aprobar cada spec y plan antes de
+que se escribiera código. La IA redactó, implementó y validó; yo dirigí y decidí.
+
+El repositorio conserva toda la trazabilidad: `specs/` con spec/plan/tasks por
+incremento, `MEMORY.md` con las 21 decisiones registradas y su razonamiento,
+`docs/constitution.md` con los principios que gobernaron las 6 specs, y `.opencode/`
+con los agentes, comandos y skills.
+
+**→ Ver el proceso completo en [`AI_PROCESS.md`](./AI_PROCESS.md)**
