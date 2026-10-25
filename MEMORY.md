@@ -18,12 +18,21 @@ validated, and merged to `main`.**
   (9 `/sdd-*` commands, 4 agents, 3 skills: `sdd`, `ruby-rails`,
   `vercel-react-best-practices`), `.agents/skills/agent-browser` (D-13),
   `docs/Reto técnico.pdf` (source of truth, C2), `.gitignore`.
-- **Next (session 2026-10-23):** spec **005-openapi MERGED to `main`** (PR #7,
-  `f334bab`; push-trigger CI green) — validated `VEREDICTO: APROBADO`; UI smoke
-  with real try-it-out; erratum D-19 stands as the record for spec RF-2's wording
-  (user decision: no /sdd-change). **Nothing in flight.** Only **`006-deploy`**
-  remains (last bonus; **OD-3** — choose Railway vs Render vs Vercel — must be
-  settled there). React skill NFR-3; agent-browser for smoke.
+- **Next (session 2026-10-25):** spec **006-deploy — T1…T5 committed; T6 DONE
+  with the user; T7 matrix 8/9 green**. Render Hobby $0, **no card ever
+  requested** (NFR-4 met); live at `https://inventory-management-ab57.onrender.com`.
+  **Gates closed in practice (T6):** Render DOES pass service env as Docker build
+  args (the RF-3 guard passed once `VITE_API_BASE_URL` was set) · `PORT` honored
+  (`Listening on [::]:10000`) · Docker Command empty → image CMD runs
+  (`db:prepare db:seed && puma`) · no release command demanded (D-P52) ·
+  **Postgres Free expires after 30 days** (form 2026-10-25 — not ~90d) ·
+  feature-branch push deploys nothing (RF-5, verified in Events). **T7 rows
+  green:** RF-1…RF-7 + NFR-1, incl. the controlled resurrection proof (ids 3→17,
+  8→18; UI-created id 16 survives redeploy). Minor note: Swagger 5.34
+  `OperationNotFoundError` in the /docs console after try-it-out (non-blocking).
+  **Remaining: the cold-start row** (user keeps hands off the URL for 30 min →
+  measured `curl --max-time 90`) → README follow-up commit (30-day expiry +
+  measured cold start, T5 rule) → `/sdd-validate 006-deploy` → PR.
 
 ## Key definitions (what is settled)
 

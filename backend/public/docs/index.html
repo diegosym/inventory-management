@@ -13,6 +13,7 @@
   <script>
     window.ui = SwaggerUIBundle({
       url: "/docs/openapi.yaml",
+      servers: [{ url: window.location.origin }],
       dom_id: "#swagger-ui",
       presets: [
         SwaggerUIBundle.presets.apis,

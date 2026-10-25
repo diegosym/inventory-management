@@ -126,9 +126,9 @@ con `CI` fallido o ausente no puede mergear en `main`; con `CI` verde, sí puede
 
 La aplicación se despliega en **Render** (decisión D-20; plan de
 `specs/006-deploy`) desde una única imagen de producción construida en la raíz
-del repo (`Dockerfile`). Un **solo origen público** — la URL asignada al
-servicio web, patrón `*.onrender.com` (la URL real se añadirá aquí tras el
-primer deploy) — sirve todo:
+del repo (`Dockerfile`). Un **solo origen público** — la URL del servicio web,
+<https://inventory-management-ab57.onrender.com> (patrón `*.onrender.com`,
+asignada en el primer deploy) — sirve todo:
 
 | | Ruta |
 |---|---|
@@ -164,31 +164,25 @@ ramas de feature o PRs sin mergear no despliegan nada.
    poblada con el dataset de demostración.
 
 **Límites del tier gratuito** (cifras verificadas en render.com/pricing el
-2026-10-24):
+2026-10-24 y en el formulario de creación de Render el 2026-10-25):
 
 - **5 GB** de bandwidth al mes (después, $0.15/GB).
 - **500 minutos de build** al mes (después, $5/1K).
 - **Compute Free:** 512 MB de RAM y <1 CPU.
-- **Postgres Free:** 256 MB de RAM y 100 conexiones.
+- **Postgres Free:** 256 MB de RAM, 100 conexiones y **expiración a los 30
+  días** (las instancias gratuitas caducan a los 30 días; RF-2 garantiza la
+  persistencia mientras viva la instancia).
 - **Sin tarjeta en el signup → sin cargos posibles** (el único cargo ligado a
   tarjeta que apunta Render es un $1 reembolsable tras añadirla).
 
-**Gates de la plataforma aún abiertos** (comportamientos que solo se confirman
-en el signup y el primer deploy; se documentarán con los valores medidos cuando
-T6 y T7 de la spec 006 los cierren):
-
-- **Spin-down por inactividad y cold start:** la URL debe responder 200 dentro
-  del límite fijo de **90 s** tras un spin-down (D-P56); el tiempo real medido
-  se añadirá aquí.
-- **Expiración del Postgres free** (~90 días asumidos; RF-2 garantiza la
-  persistencia mientras viva la instancia).
-- **Env como Docker build args:** Render debe pasar `VITE_API_BASE_URL` al
-  build de la imagen; si no lo hace, es un STOP con decisión del usuario
-  (RF-3).
-- **Release command y campos exactos del health check** (path/interval/
-  threshold): la cadena del `CMD` del `Dockerfile` sigue siendo el mecanismo;
-  si Render exigiera migraciones en un release command, se reporta, no se cambia
-  en silencio (D-P52).
+**Gates de la plataforma:** todos verificados en signup/producción el
+2026-10-25 — spin-down observado tras ~30 min de inactividad y cold start
+medido de **62.5 s** para el primer request (límite fijo de **90 s**, D-P56);
+env vars inyectadas por Render como Docker build args (el guard de RF-3 solo
+pasó con `VITE_API_BASE_URL` en el entorno del build); Render **no exige**
+release command (D-P52 intacto — el `db:prepare db:seed` del `CMD` basta);
+health check en `GET /api/v1/products` funcionando (servicio live); Docker
+Command vacío → se usa el `CMD` de la imagen y `PORT=10000` respetado.
 
 ## API (resumen)
 
