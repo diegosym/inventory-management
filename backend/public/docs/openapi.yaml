@@ -21,8 +21,8 @@ info:
     - The API has no authentication or authorization; requests are plain JSON
       over HTTP.
 servers:
-  - url: http://localhost:3000
-    description: Development base URL delivered by docker compose
+  - url: /
+    description: The server that serves this document
 tags:
   - name: products
     description: The product resource
